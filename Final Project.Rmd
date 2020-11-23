@@ -9,9 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Testing
+
 ```{r}
-a = 2; b = 3
-a+b
+library(knockoff)
 ```
 
