@@ -9,22 +9,130 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+library(knockoff)
+library(doMC)
+library(shiny)
+library(MASS)
 ```
 
-## Including Plots
+```{r}
+# FDP for first measure (model-X, linear)
 
-You can also embed plots, for example:
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
+W = stat.lasso_coefdiff(X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
+
+X_n = scale(X)
+```
+
+
+```{r}
+# FDP for third measure (model-X, linear)
+
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
+W = stat.lasso_lambdadiff(X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
+
+```
+
+
+```{r}
+# FDP for fourth measure (model-X, linear)
+set.seed(123)
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
+W = stat.lasso_lambdasmax(X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+W
+Threshold
+
+#discoveries = which(W > Threshold)
+#fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+#fdp
+
+```
+
+```{r}
+# FDP for fourth measure (model-X, linear)
+set.seed(123)
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
+W = stat.lasso_lambdasmax(create.fixed(X)$X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+W
+Threshold
+
+#discoveries = which(W > Threshold)
+#fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+#fdp
+
+```
+
+```{r}
+# FDP for first measure (fixed-X, linear)
+
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.fixed(X)
+W = stat.lasso_coefdiff(X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
+```
+
+```{r}
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = X %*% beta + rnorm(n)
+X_k = create.fixed(X)
+X_k_n = create.fixed(X_k$X)
+```
+
