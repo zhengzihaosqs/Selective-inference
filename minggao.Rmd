@@ -26,7 +26,7 @@ result = knockoff.filter(X, y)
 print(result$selected)
 ```
 
-# mouse juice
+# mouse juice 
 ```{r}
 # Advanced usage with custom arguments
 knockoffs = function(X) create.gaussian(X, mu, Sigma)
