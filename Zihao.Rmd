@@ -16,113 +16,6 @@ library(shiny)
 library(MASS)
 ```
 
-```{r}
-# FDP for first measure (model-X, linear)
-
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_coefdiff(X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-
-```
-
-
-
-```{r}
-# FDP for third measure (model-X, linear)
-
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_lambdadiff(X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-
-```
-
-
-```{r}
-# FDP for fourth measure (model-X, linear)
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_lambdasmax(X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-
-```
-
-
-```{r}
-# FDP for first measure (fixed-X, linear)
-
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.fixed(X)
-W = stat.lasso_coefdiff(X, X_k$Xk, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-```
-
-```{r}
-# FDP for first measure (model-X, sin(x))
-
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = sin(X) %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_coefdiff(X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-```
-
-```{r}
-# FDP for first measure (model-X, logit)
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-pr = 1/(1 + exp(-X %*% beta))
-y = rbinom(n,1,pr)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_coefdiff_bin(X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-discoveries = which(W > Threshold)
-fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-fdp
-```
 
 ```{r}
 generate_y<-function(X, beta, relation){
@@ -130,7 +23,7 @@ generate_y<-function(X, beta, relation){
     y = X %*% beta + rnorm(n)
   } else if(relation=='sin'){
     y = sin(X) %*% beta + rnorm(n)
-  } else if(relation=='logit'){
+  } else if(relation=='logistic'){
     pr = 1/(1 + exp(-X %*% beta))
     y = rbinom(n,1,pr)
   } else{
@@ -174,11 +67,27 @@ cal_fdp<-function(p=200, n=500, k=40, fdr=0.1, replicate=20, relation='linear', 
   colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax')
   return(list(fdp_matrix,power_matrix))
 }
+```
+
+
+```{r warning=FALSE}
 set.seed(123)
-result= cal_fdp()
+cal_fdp(relation = 'linear', method = 'fixed')
 ```
 
 ```{r}
+set.seed(123)
+cal_fdp(relation = 'linear', method = 'model')
+```
 
+
+```{r warning=FALSE}
+set.seed(123)
+cal_fdp(relation = 'sin',method = 'model')
+```
+
+```{r}
+set.seed(123)
+cal_fdp(relation = 'logistic',method = 'model')
 ```
 
