@@ -1,14 +1,8 @@
-#
-# This is the server logic of a Shiny web application. You can run the 
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-# 
-#    http://shiny.rstudio.com/
-#
+
 
 library(shiny)
-
+library(knockoff)
+library(wordcloud2)
 # Define server logic required to draw a histogram
 server=function(input, output) {
   
@@ -21,6 +15,10 @@ server=function(input, output) {
     plot(regFormula(), data = mtcars, pch = 19)
   })
   
+  
+  
+  #############################################################################################################
+  ##### final stage: create a pdf report using "report.Rmd"
   output$downloadReport <- downloadHandler(
     filename = function() {
       paste('my-report', sep = '.', switch(
