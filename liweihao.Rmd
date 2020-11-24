@@ -32,7 +32,7 @@ result_VIM_cor_fixed_X<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
   result_power=data.frame()
   for(i in 1:Nreplicate){
     # create data, row of X follow multivariate normal with mean 0 Cov=diagonal matrix
-    mu = rep(0,p); Sigma = 4*diag(p)
+    mu = rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
     nonzero = sort(sample(p, k))
     X = mvrnorm(n,mu,Sigma)
     #beta=rnorm(p,sd=3); beta[-nonzero]=0
