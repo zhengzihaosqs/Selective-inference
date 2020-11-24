@@ -18,7 +18,7 @@ cor(x, y, method = c("pearson", "kendall", "spearman"))
 
 ```{r}
 library(knockoff)
-library(minerva)
+#library(minerva)
 library(MASS)
 ```
 
@@ -46,96 +46,163 @@ result_VIM_cor_fixed_X<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
     pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_tilde[,j]))})
     kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_tilde[,j],method = c("kendall")))})
     spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_tilde[,j],method = c("spearman")))})
-    MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
+    #MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
     thres_pearson=knockoff.threshold( pearson_W,fdr); discoveries_pearson = which(pearson_W > thres_pearson)
     thres_kendall=knockoff.threshold( kendall_W,fdr); discoveries_kendall = which(kendall_W > thres_kendall)
     thres_spearman=knockoff.threshold(spearman_W,fdr);discoveries_spearman=which(spearman_W>thres_spearman)
-    thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
+    #thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
     fdp_one_time=c(sum(1 - discoveries_pearson %in% nonzero)/max(1,length(discoveries_pearson)),
                    sum(1 - discoveries_kendall %in% nonzero)/max(1,length(discoveries_kendall)),
-                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)),
-                   sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)))
+                 #  sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
     power_one_time=c(sum( discoveries_pearson %in% nonzero)/k,
                    sum( discoveries_kendall %in% nonzero)/k,
-                   sum( discoveries_spearman %in% nonzero)/k,
-                   sum(discoveries_MIC %in% nonzero)/k)
+                   sum( discoveries_spearman %in% nonzero)/k)
+                   #sum(discoveries_MIC %in% nonzero)/k)
     result_power=rbind(result_power,power_one_time)
     result_FDP_est=rbind(result_FDP_est,fdp_one_time)
   }
-  colnames(result_power)=c("pearson","kendall","spearman","MIC")
-  colnames(result_FDP_est)=c("pearson","kendall","spearman","MIC")
+  colnames(result_power)=c("pearson","kendall","spearman")
+  colnames(result_FDP_est)=c("pearson","kendall","spearman")
   return(list(power=result_power,fdp=result_FDP_est))
   
 }
-result=result_VIM_cor_fixed_X(Nreplicate = 5)
-result$fdp
-result$power
+result1=result_VIM_cor_fixed_X(Nreplicate = 100)
+apply(result1$fdp,2,mean)
+apply(result1$power,2,mean)
 ```
 
 
 Model-X case: linear model
 ```{r}
-result_VIM_cor_Model_X_linear<-function(p=100,n=300,k=20,fdr=0.1,Nreplicate=100){
+result_VIM_cor_Model_X_linear<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
   result_FDP_est=data.frame()
+  result_power=data.frame()
   for(i in 1:Nreplicate){
     # create data, row of X follow multivariate normal with mean 0 Cov=diagonal matrix
     mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
     X = mvrnorm(n,mu,Sigma)
     X_tilde = create.gaussian(X, mu, Sigma)
     nonzero = sort(sample(p, k))
-    beta=rnorm(p,sd=3); beta[-nonzero]=0
-    #beta = 3.5 * (1:p %in% nonzero)
+    #beta=rnorm(p,sd=3); beta[-nonzero]=0
+    beta = 3.5 * (1:p %in% nonzero)
     y = X %*% beta + rnorm(n)
-    pearson_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("pearson")))-abs(cor(y,X_tilde[,j],method = c("pearson")))})
+    pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_tilde[,j]))})
     kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_tilde[,j],method = c("kendall")))})
     spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_tilde[,j],method = c("spearman")))})
-    MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
+    #MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
     thres_pearson=knockoff.threshold( pearson_W,fdr); discoveries_pearson = which(pearson_W > thres_pearson)
     thres_kendall=knockoff.threshold( kendall_W,fdr); discoveries_kendall = which(kendall_W > thres_kendall)
     thres_spearman=knockoff.threshold(spearman_W,fdr);discoveries_spearman=which(spearman_W>thres_spearman)
-    thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
+    #thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
     fdp_one_time=c(sum(1 - discoveries_pearson %in% nonzero)/max(1,length(discoveries_pearson)),
                    sum(1 - discoveries_kendall %in% nonzero)/max(1,length(discoveries_kendall)),
-                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)),
-                   sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)))
+                 #  sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+    power_one_time=c(sum( discoveries_pearson %in% nonzero)/k,
+                   sum( discoveries_kendall %in% nonzero)/k,
+                   sum( discoveries_spearman %in% nonzero)/k)
+                   #sum(discoveries_MIC %in% nonzero)/k)
+    result_power=rbind(result_power,power_one_time)
     result_FDP_est=rbind(result_FDP_est,fdp_one_time)
   }
-  colnames(result_FDP_est)=c("pearson","kendall","spearman","MIC")
-  result_FDP_est
+  colnames(result_power)=c("pearson","kendall","spearman")
+  colnames(result_FDP_est)=c("pearson","kendall","spearman")
+  return(list(power=result_power,fdp=result_FDP_est))
   
 }
-result_VIM_cor_Model_X_linear(k=30,fdr = 0.1,Nreplicate = 5)
+result2=result_VIM_cor_Model_X_linear()
+apply(result2$fdp,2,mean)
+apply(result2$power,2,mean)
 ```
 
 Model-X case: logistics model
 ```{r}
-result_VIM_cor_Model_X_logistic<-function(p=100,n=300,k=20,fdr=0.1,Nreplicate=100){
+result_VIM_cor_Model_X_logistic<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
   result_FDP_est=data.frame()
+  result_power=data.frame()
   for(i in 1:Nreplicate){
     # create data, row of X follow multivariate normal with mean 0 Cov=diagonal matrix
     mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
     X = mvrnorm(n,mu,Sigma)
     X_tilde = create.gaussian(X, mu, Sigma)
     nonzero = sort(sample(p, k))
-    beta=rnorm(p,sd=3); beta[-nonzero]=0
-    #beta = 3.5 * (1:p %in% nonzero)
-    y = X %*% beta + rnorm(n)
-    pearson_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("pearson")))-abs(cor(y,X_tilde[,j],method = c("pearson")))})
+   
+    beta = 3.5 * (1:p %in% nonzero)
+    pr = 1/(1+exp(-X %*% beta))
+    y = rbinom(n,1,pr)
+    
+    pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_tilde[,j]))})
     kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_tilde[,j],method = c("kendall")))})
     spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_tilde[,j],method = c("spearman")))})
-    MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
+    #MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
     thres_pearson=knockoff.threshold( pearson_W,fdr); discoveries_pearson = which(pearson_W > thres_pearson)
     thres_kendall=knockoff.threshold( kendall_W,fdr); discoveries_kendall = which(kendall_W > thres_kendall)
     thres_spearman=knockoff.threshold(spearman_W,fdr);discoveries_spearman=which(spearman_W>thres_spearman)
-    thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
+    #thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
     fdp_one_time=c(sum(1 - discoveries_pearson %in% nonzero)/max(1,length(discoveries_pearson)),
                    sum(1 - discoveries_kendall %in% nonzero)/max(1,length(discoveries_kendall)),
-                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)),
-                   sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)))
+                 #  sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+    power_one_time=c(sum( discoveries_pearson %in% nonzero)/k,
+                   sum( discoveries_kendall %in% nonzero)/k,
+                   sum( discoveries_spearman %in% nonzero)/k)
+                   #sum(discoveries_MIC %in% nonzero)/k)
+    result_power=rbind(result_power,power_one_time)
     result_FDP_est=rbind(result_FDP_est,fdp_one_time)
   }
-  colnames(result_FDP_est)=c("pearson","kendall","spearman","MIC")
-  result_FDP_est
+  colnames(result_power)=c("pearson","kendall","spearman")
+  colnames(result_FDP_est)=c("pearson","kendall","spearman")
+  return(list(power=result_power,fdp=result_FDP_est))
+  
   
 }
-result_VIM_cor_Model_X_linear(fdr = 0.1,Nreplicate = 5)
+result3=result_VIM_cor_Model_X_logistic(fdr = 0.1,Nreplicate = 5)
+apply(result3$fdp,2,mean)
+apply(result3$power,2,mean)
+```
+
+Model-X case: sin model
+```{r}
+result_VIM_cor_Model_X_sin<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
+  result_FDP_est=data.frame()
+  result_power=data.frame()
+  for(i in 1:Nreplicate){
+    # create data, row of X follow multivariate normal with mean 0 Cov=diagonal matrix
+    mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n,mu,Sigma)
+    X_tilde = create.gaussian(X, mu, Sigma)
+    nonzero = sort(sample(p, k))
+   
+    beta = 3.5 * (1:p %in% nonzero)
+    y = sin(X) %*% beta + rnorm(n)
+    pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_tilde[,j]))})
+    kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_tilde[,j],method = c("kendall")))})
+    spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_tilde[,j],method = c("spearman")))})
+    #MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
+    thres_pearson=knockoff.threshold( pearson_W,fdr); discoveries_pearson = which(pearson_W > thres_pearson)
+    thres_kendall=knockoff.threshold( kendall_W,fdr); discoveries_kendall = which(kendall_W > thres_kendall)
+    thres_spearman=knockoff.threshold(spearman_W,fdr);discoveries_spearman=which(spearman_W>thres_spearman)
+    #thres_MIC=knockoff.threshold(MIC_W,fdr); discoveries_MIC=which(MIC_W>thres_MIC)
+    fdp_one_time=c(sum(1 - discoveries_pearson %in% nonzero)/max(1,length(discoveries_pearson)),
+                   sum(1 - discoveries_kendall %in% nonzero)/max(1,length(discoveries_kendall)),
+                   sum(1 - discoveries_spearman %in% nonzero)/max(1,length(discoveries_spearman)))
+                 #  sum(1 - discoveries_MIC %in% nonzero)/max(1,length(discoveries_MIC)))
+    power_one_time=c(sum( discoveries_pearson %in% nonzero)/k,
+                   sum( discoveries_kendall %in% nonzero)/k,
+                   sum( discoveries_spearman %in% nonzero)/k)
+                   #sum(discoveries_MIC %in% nonzero)/k)
+    result_power=rbind(result_power,power_one_time)
+    result_FDP_est=rbind(result_FDP_est,fdp_one_time)
+  }
+  colnames(result_power)=c("pearson","kendall","spearman")
+  colnames(result_FDP_est)=c("pearson","kendall","spearman")
+  return(list(power=result_power,fdp=result_FDP_est))
+  
+  
+}
+result4=result_VIM_cor_Model_X_sin(fdr = 0.1,Nreplicate = 5)
+apply(result4$fdp,2,mean)
+apply(result4$power,2,mean)
+```
+
