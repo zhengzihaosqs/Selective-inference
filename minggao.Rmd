@@ -13,25 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knockoff)
 ```
 
-```{r}
-p=100; n=300; k=15
-#mu = rep(0,p); Sigma = diag(p)
-mu=rep(0,p); Sigma=toeplitz(0.5^(0:(p-1)))
-X = matrix(rnorm(n*p),n)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-# Basic usage with default arguments
-result = knockoff.filter(X, y)
-print(result$selected)
-```
+you can 'pull' and see what weihao do
 
-# mouse juice 
-```{r}
-# Advanced usage with custom arguments
-knockoffs = function(X) create.gaussian(X, mu, Sigma)
-k_stat = function(X, Xk, y) stat.glmnet_coefdiff(X, Xk, y, nfolds=5)
-result = knockoff.filter(X, y, knockoffs=knockoffs, statistic=k_stat)
-print(result$selected)
-```
+use same parameter: result_VIM_cor_fixed_X<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100)
 
