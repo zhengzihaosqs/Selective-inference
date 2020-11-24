@@ -15,6 +15,7 @@ Mutual information
 ```{r}
 library(knockoff)
 library(MASS)
+library(mpmi)
 ```
 
 Model-X case: linear model
