@@ -65,29 +65,40 @@ cal_fdp<-function(p=200, n=500, k=40, fdr=0.1, replicate=20, relation='linear', 
   }
   colnames(fdp_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax')
   colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax')
-  return(list(fdp_matrix,power_matrix))
+  return(list(fdp = fdp_matrix, power = power_matrix))
 }
 ```
 
 
-```{r warning=FALSE}
-set.seed(123)
-cal_fdp(relation = 'linear', method = 'fixed')
+```{r}
+r1 = cal_fdp(replicate = 100, relation = 'linear',method = 'fixed')
+hist(r1$fdp[,1],breaks = 12,freq=FALSE)
+print("Average FDP"); apply(r1$fdp,2,mean)
+print("Standard deviation of FDP"); apply(r1$fdp,2,sd)
+print("Average power"); apply(r1$power,2,mean)
+print("Standard deviation of power"); apply(r1$power,2,sd)
 ```
 
 ```{r}
-set.seed(123)
-cal_fdp(relation = 'linear', method = 'model')
-```
-
-
-```{r warning=FALSE}
-set.seed(123)
-cal_fdp(relation = 'sin',method = 'model')
+r2 = cal_fdp(replicate = 100, relation = 'linear',method = 'model')
+print("Average FDP"); apply(r2$fdp,2,mean)
+print("Standard deviation of FDP"); apply(r2$fdp,2,sd)
+print("Average power"); apply(r2$power,2,mean)
+print("Standard deviation of power"); apply(r2$power,2,sd)
 ```
 
 ```{r}
-set.seed(123)
-cal_fdp(relation = 'logistic',method = 'model')
+r3 = cal_fdp(replicate = 100, relation = 'sin',method = 'model')
+print("Average FDP"); apply(r3$fdp,2,mean)
+print("Standard deviation of FDP"); apply(r3$fdp,2,sd)
+print("Average power"); apply(r3$power,2,mean)
+print("Standard deviation of power"); apply(r3$power,2,sd)
 ```
 
+```{r}
+r4 = cal_fdp(replicate = 100, relation = 'logistic',method = 'model')
+print("Average FDP"); apply(r4$fdp,2,mean)
+print("Standard deviation of FDP"); apply(r4$fdp,2,sd)
+print("Average power"); apply(r4$power,2,mean)
+print("Standard deviation of power"); apply(r4$power,2,sd)
+```
