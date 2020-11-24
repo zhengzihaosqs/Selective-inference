@@ -9,31 +9,72 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r}
 library(knockoff)
+library(doMC)
 library(shiny)
+library(MASS)
+library(ranger)
+library(mpmi)
 ```
 
-Model-X: mean = 0, covariance matrix: `toeplitz`
-
-## MIC,correlation -- Weihao
+```{r}
+generate_y<-function(X, beta, relation){
+  if(relation=='linear'){
+    y = X %*% beta + rnorm(n)
+  } else if(relation=='sin'){
+    y = sin(X) %*% beta + rnorm(n)
+  } else if(relation=='logistic'){
+    pr = 1/(1 + exp(-X %*% beta))
+    y = rbinom(n,1,pr)
+  } else{
+    stop('Wrong relation')
+  }
+  return(y)
+}
+```
 
 ```{r}
 
 ```
 
-
-## Lasso (except the second one) -- Zihao
-
 ```{r}
-
-```
-
-
-## Mutual information, random forest -- Ming
-
-```{r}
-
+knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='linear', method='fixed'){
+  fdp_matrix <- data.frame()
+  power_matrix <- data.frame()
+  for(i in 1:replicate){
+    mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n,mu,Sigma)
+    nonzero = sample(p, k)
+    beta = 3.5 * (1:p %in% nonzero)
+    y = generate_y(X,beta,relation)
+    if(method=='fixed'){
+      X_k=create.fixed(X)$Xk
+    } else if(method=='model'){
+      X_k=create.gaussian(X,mu,Sigma)
+    } else{
+      stop('Wrong method')
+    }
+    
+    coefdiff_W=stat.lasso_coefdiff(X, X_k, y)
+    lambdadiff_W=stat.lasso_lambdadiff(X, X_k, y)
+    lambdasmax_W=stat.lasso_lambdasmax(X, X_k, y)
+    pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_k[,j]))})
+    kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_k[,j],method = c("kendall")))})
+    spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_k[,j],method = c("spearman")))})
+    RF_W=stat.random_forest(X, X_k, y)
+    MI_W=sapply(1:p, function(j) {
+      cmi(cbind(y,X[,j]))$bcmi[1,2] -
+      cmi(cbind(y,X_k[,j]))$bcmi[1,2]})
+    list_W = list(coefdiff_W)
+    discoveries=sapply(1:8,function(j) {which(W[j]>knockoff.threshold(W[j],fdr))})
+  
+  
+  
+  
+  
+  
+  }
+}
 ```
 
