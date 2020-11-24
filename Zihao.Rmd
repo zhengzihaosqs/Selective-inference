@@ -34,17 +34,6 @@ fdp
 
 ```
 
-```{r}
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-
-X_n = scale(X)
-```
 
 
 ```{r}
@@ -68,7 +57,6 @@ fdp
 
 ```{r}
 # FDP for fourth measure (model-X, linear)
-set.seed(123)
 p=100; n=300; k=30; fdr=0.1;
 mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
 X = mvrnorm(n,mu,Sigma)
@@ -78,35 +66,12 @@ y = X %*% beta + rnorm(n)
 X_k = create.gaussian(X, mu, Sigma)
 W = stat.lasso_lambdasmax(X, X_k, y)
 Threshold = knockoff.threshold(W, fdr)
-W
-Threshold
-
-#discoveries = which(W > Threshold)
-#fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-#fdp
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
 
 ```
 
-```{r}
-# FDP for fourth measure (model-X, linear)
-set.seed(123)
-p=100; n=300; k=30; fdr=0.1;
-mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
-X = mvrnorm(n,mu,Sigma)
-nonzero = sample(p, k)
-beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.gaussian(X, mu, Sigma)
-W = stat.lasso_lambdasmax(create.fixed(X)$X, X_k, y)
-Threshold = knockoff.threshold(W, fdr)
-W
-Threshold
-
-#discoveries = which(W > Threshold)
-#fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
-#fdp
-
-```
 
 ```{r}
 # FDP for first measure (fixed-X, linear)
@@ -118,6 +83,23 @@ nonzero = sample(p, k)
 beta = 3.5 * (1:p %in% nonzero)
 y = X %*% beta + rnorm(n)
 X_k = create.fixed(X)
+W = stat.lasso_coefdiff(X, X_k$Xk, y)
+Threshold = knockoff.threshold(W, fdr)
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
+```
+
+```{r}
+# FDP for first measure (model-X, sin(x))
+
+p=100; n=300; k=30; fdr=0.1;
+mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+X = mvrnorm(n,mu,Sigma)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = sin(X) %*% beta + rnorm(n)
+X_k = create.gaussian(X, mu, Sigma)
 W = stat.lasso_coefdiff(X, X_k, y)
 Threshold = knockoff.threshold(W, fdr)
 discoveries = which(W > Threshold)
@@ -126,13 +108,77 @@ fdp
 ```
 
 ```{r}
+# FDP for first measure (model-X, logit)
 p=100; n=300; k=30; fdr=0.1;
 mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
 X = mvrnorm(n,mu,Sigma)
 nonzero = sample(p, k)
 beta = 3.5 * (1:p %in% nonzero)
-y = X %*% beta + rnorm(n)
-X_k = create.fixed(X)
-X_k_n = create.fixed(X_k$X)
+pr = 1/(1 + exp(-X %*% beta))
+y = rbinom(n,1,pr)
+X_k = create.gaussian(X, mu, Sigma)
+W = stat.lasso_coefdiff_bin(X, X_k, y)
+Threshold = knockoff.threshold(W, fdr)
+discoveries = which(W > Threshold)
+fdp = sum(1 - discoveries %in% nonzero)/length(discoveries)
+fdp
+```
+
+```{r}
+generate_y<-function(X, beta, relation){
+  if(relation=='linear'){
+    y = X %*% beta + rnorm(n)
+  } else if(relation=='sin'){
+    y = sin(X) %*% beta + rnorm(n)
+  } else if(relation=='logit'){
+    pr = 1/(1 + exp(-X %*% beta))
+    y = rbinom(n,1,pr)
+  } else{
+    stop('Wrong relation')
+  }
+  return(y)
+}
+```
+
+
+```{r}
+cal_fdp<-function(p=200, n=500, k=40, fdr=0.1, replicate=20, relation='linear', method='fixed'){
+  fdp_matrix <- data.frame()
+  power_matrix <- data.frame()
+  for(i in 1:replicate){
+    mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n,mu,Sigma)
+    nonzero = sample(p, k)
+    beta = 3.5 * (1:p %in% nonzero)
+    y = generate_y(X,beta,relation)
+    if(method=='fixed'){
+      X_k=create.fixed(X)$Xk
+    } else if(method=='model'){
+      X_k=create.gaussian(X,mu,Sigma)
+    } else{
+      stop('Wrong method')
+    }
+    W1 = stat.lasso_coefdiff(X, X_k, y); discoveries1 = which(W1 > knockoff.threshold(W1, fdr))
+    W2 = stat.lasso_lambdadiff(X, X_k, y); discoveries2 = which(W2 > knockoff.threshold(W2, fdr))
+    W3 = stat.lasso_lambdasmax(X, X_k, y); discoveries3 = which(W3 > knockoff.threshold(W3, fdr))
+    fdp1 = sum(1 - discoveries1 %in% nonzero)/max(length(discoveries1),1)
+    fdp2 = sum(1 - discoveries2 %in% nonzero)/max(length(discoveries2),1)
+    fdp3 = sum(1 - discoveries3 %in% nonzero)/max(length(discoveries3),1)
+    power1 = sum(discoveries1 %in% nonzero)/k
+    power2 = sum(discoveries2 %in% nonzero)/k
+    power3 = sum(discoveries3 %in% nonzero)/k
+    fdp_matrix = rbind(fdp_matrix,c(fdp1,fdp2,fdp3))
+    power_matrix = rbind(power_matrix,c(power1,power2,power3))
+  }
+  colnames(fdp_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax')
+  colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax')
+  return(list(fdp_matrix,power_matrix))
+}
+set.seed(123)
+result= cal_fdp()
+```
+
+```{r}
+
 ```
 
