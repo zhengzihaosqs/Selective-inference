@@ -9,11 +9,171 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Random forest
+Mutual information
+
 ```{r}
 library(knockoff)
+library(MASS)
 ```
 
-you can 'pull' and see what weihao do
+Model-X case: linear model
 
-use same parameter: result_VIM_cor_fixed_X<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100)
+```{r}
+result_VIM_nonpara_fix_X <- function(p=100, n=300, k=20, fdr=0.1, Nreplicate=100){
+  result_FDP_est = data.frame()
+  result_power=data.frame()
+  for(i in 1:Nreplicate){
+    mu = rep(0,p); Sigma = toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n, mu, Sigma)
+    nonzero = sort(sample(p, k))
+    beta = rnorm(p, sd=3); beta[-nonzero] = 0
+    y = X %*% beta + rnorm(n)
+    
+    knockoff_X = create.fixed(X)
+    X = knockoff_X$X
+    X_tilde=  knockoff_X$Xk
+    
+    RF_W = stat.random_forest(X, X_tilde, y)
+    MI_W = sapply(1:p, function(j) {
+      cmi(cbind(y,X[,j]))$bcmi[1,2] -
+      cmi(cbind(y,X_tilde[,j]))$bcmi[1,2]})
+
+    thres_RF = knockoff.threshold(RF_W, fdr); discoveries_RF = which(RF_W > thres_RF)
+    thres_MI = knockoff.threshold(MI_W, fdr); discoveries_MI = which(MI_W > thres_MI)
+    
+    fdp_one_time=c(sum(1 - discoveries_RF %in% nonzero) / max(1, length(discoveries_RF)),
+                   sum(1 - discoveries_MI %in% nonzero) / max(1, length(discoveries_MI)))
+    power_one_time=c(sum(discoveries_RF %in% nonzero)/k,
+                     sum(discoveries_MI %in% nonzero)/k)
+    
+    result_FDP_est = rbind(result_FDP_est, fdp_one_time)
+    result_power = rbind(result_power, power_one_time)
+  }
+  colnames(result_FDP_est) = c("Random Forest", 'Mutual Information')
+  colnames(result_power) = c("Random Forest", 'Mutual Information')
+  return(list(power=result_power, fdp=result_FDP_est))
+}
+result1 = result_VIM_nonpara_fix_X()
+apply(result1$fdp, 2, mean)
+apply(result1$power, 2, mean)
+```
+
+Model-X case: linear model
+
+```{r}
+result_VIM_nonpara_Model_X_linear <- function(p=100, n=300, k=20, fdr=0.1, Nreplicate=100){
+  result_FDP_est = data.frame()
+  result_power=data.frame()
+  for(i in 1:Nreplicate){
+    mu = rep(0,p); Sigma = toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n, mu, Sigma)
+    X_tilde = create.gaussian(X, mu, Sigma)
+    nonzero = sort(sample(p, k))
+    beta = rnorm(p, sd=3); beta[-nonzero] = 0
+    y = X %*% beta + rnorm(n)
+    RF_W = stat.random_forest(X, X_tilde, y)
+    MI_W = sapply(1:p, function(j) {
+      cmi(cbind(y,X[,j]))$bcmi[1,2] -
+      cmi(cbind(y,X_tilde[,j]))$bcmi[1,2]})
+
+    thres_RF = knockoff.threshold(RF_W, fdr); discoveries_RF = which(RF_W > thres_RF)
+    thres_MI = knockoff.threshold(MI_W, fdr); discoveries_MI = which(MI_W > thres_MI)
+    
+    fdp_one_time=c(sum(1 - discoveries_RF %in% nonzero) / max(1, length(discoveries_RF)),
+                   sum(1 - discoveries_MI %in% nonzero) / max(1, length(discoveries_MI)))
+    power_one_time=c(sum(discoveries_RF %in% nonzero)/k,
+                     sum(discoveries_MI %in% nonzero)/k)
+    
+    result_FDP_est = rbind(result_FDP_est, fdp_one_time)
+    result_power = rbind(result_power, power_one_time)
+  }
+  colnames(result_FDP_est) = c("Random Forest", 'Mutual Information')
+  colnames(result_power) = c("Random Forest", 'Mutual Information')
+  return(list(power=result_power, fdp=result_FDP_est))
+}
+result2 = result_VIM_nonpara_Model_X_linear()
+apply(result2$fdp, 2, mean)
+apply(result2$power, 2, mean)
+```
+
+Model-X case: logistics model
+
+```{r}
+result_VIM_nonpara_Model_X_logistic <- function(p=100, n=300, k=20, fdr=0.1, Nreplicate=100){
+  result_FDP_est = data.frame()
+  result_power=data.frame()
+  for(i in 1:Nreplicate){
+    mu = rep(0,p); Sigma = toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n, mu, Sigma)
+    X_tilde = create.gaussian(X, mu, Sigma)
+    nonzero = sort(sample(p, k))
+    beta = rnorm(p, sd=3); beta[-nonzero] = 0
+    pr = 1/(1+exp(-X %*% beta))
+    y = rbinom(n,1,pr)
+    
+    RF_W = stat.random_forest(X, X_tilde, y)
+    MI_W = sapply(1:p, function(j) {
+      cmi(cbind(y,X[,j]))$bcmi[1,2] -
+      cmi(cbind(y,X_tilde[,j]))$bcmi[1,2]})
+
+    thres_RF = knockoff.threshold(RF_W, fdr); discoveries_RF = which(RF_W > thres_RF)
+    thres_MI = knockoff.threshold(MI_W, fdr); discoveries_MI = which(MI_W > thres_MI)
+    
+    fdp_one_time=c(sum(1 - discoveries_RF %in% nonzero) / max(1, length(discoveries_RF)),
+                   sum(1 - discoveries_MI %in% nonzero) / max(1, length(discoveries_MI)))
+    power_one_time=c(sum(discoveries_RF %in% nonzero)/k,
+                     sum(discoveries_MI %in% nonzero)/k)
+    
+    result_FDP_est = rbind(result_FDP_est, fdp_one_time)
+    result_power = rbind(result_power, power_one_time)
+  }
+  colnames(result_FDP_est) = c("Random Forest", 'Mutual Information')
+  colnames(result_power) = c("Random Forest", 'Mutual Information')
+  return(list(power=result_power, fdp=result_FDP_est))
+}
+result3 = result_VIM_nonpara_Model_X_logistic()
+apply(result3$fdp, 2, mean)
+apply(result3$power, 2, mean)
+```
+
+
+Model-X case: sin model
+
+```{r}
+result_VIM_nonpara_Model_X_sin <- function(p=100, n=300, k=20, fdr=0.1, Nreplicate=100){
+  result_FDP_est = data.frame()
+  result_power=data.frame()
+  for(i in 1:Nreplicate){
+    mu = rep(0,p); Sigma = toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n, mu, Sigma)
+    X_tilde = create.gaussian(X, mu, Sigma)
+    nonzero = sort(sample(p, k))
+    beta = rnorm(p, sd=3); beta[-nonzero] = 0
+    y = sin(X) %*% beta + rnorm(n)
+    
+    RF_W = stat.random_forest(X, X_tilde, y)
+    MI_W = sapply(1:p, function(j) {
+      cmi(cbind(y,X[,j]))$bcmi[1,2] -
+      cmi(cbind(y,X_tilde[,j]))$bcmi[1,2]})
+
+    thres_RF = knockoff.threshold(RF_W, fdr); discoveries_RF = which(RF_W > thres_RF)
+    thres_MI = knockoff.threshold(MI_W, fdr); discoveries_MI = which(MI_W > thres_MI)
+    
+    fdp_one_time=c(sum(1 - discoveries_RF %in% nonzero) / max(1, length(discoveries_RF)),
+                   sum(1 - discoveries_MI %in% nonzero) / max(1, length(discoveries_MI)))
+    power_one_time=c(sum(discoveries_RF %in% nonzero)/k,
+                     sum(discoveries_MI %in% nonzero)/k)
+    
+    result_FDP_est = rbind(result_FDP_est, fdp_one_time)
+    result_power = rbind(result_power, power_one_time)
+  }
+  colnames(result_FDP_est) = c("Random Forest", 'Mutual Information')
+  colnames(result_power) = c("Random Forest", 'Mutual Information')
+  return(list(power=result_power, fdp=result_FDP_est))
+}
+result4 = result_VIM_nonpara_Model_X_sin()
+apply(result4$fdp, 2, mean)
+apply(result4$power, 2, mean)
+```
 
