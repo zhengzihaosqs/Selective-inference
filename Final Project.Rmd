@@ -35,10 +35,6 @@ generate_y<-function(X, beta, relation){
 ```
 
 ```{r}
-
-```
-
-```{r}
 knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='linear', method='fixed'){
   fdp_matrix <- data.frame()
   power_matrix <- data.frame()
@@ -66,15 +62,23 @@ knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='l
     MI_W=sapply(1:p, function(j) {
       cmi(cbind(y,X[,j]))$bcmi[1,2] -
       cmi(cbind(y,X_k[,j]))$bcmi[1,2]})
-    list_W = list(coefdiff_W)
-    discoveries=sapply(1:8,function(j) {which(W[j]>knockoff.threshold(W[j],fdr))})
-  
-  
-  
-  
-  
-  
+    W = data.frame(coefdiff=coefdiff_W, lambdadiff=lambdadiff_W, lambdasmax=lambdasmax_W, pearson=pearson_W,
+                   kendall=kendall_W, spearman=spearman_W, RF=RF_W, MI=MI_W)
+    discoveries=sapply(1:ncol(W),function(j) {which(W[,j]>knockoff.threshold(W[,j],fdr))})
+    fdp = sapply(1:ncol(W), function(j) {sum(1 - discoveries[[j]] %in% nonzero)/max(length(discoveries[[j]]),1)})
+    power = sapply(1:ncol(W), function(j) {sum(discoveries[[j]] %in% nonzero)/k})
+    fdp_matrix = rbind(fdp_matrix,fdp)
+    power_matrix = rbind(power_matrix,power)
   }
+  colnames(fdp_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'pearson', 'kendall', 'spearman',
+                            'random forest', 'mutual information')
+  colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'pearson', 'kendall', 'spearman',
+                            'random forest', 'mutual information')
+  return(list(fdp = fdp_matrix, power = power_matrix))
 }
+```
+
+```{r}
+temp = knockoff_result(replicate=5)
 ```
 
