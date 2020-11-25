@@ -45,7 +45,9 @@ knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='l
     beta = 3.5 * (1:p %in% nonzero)
     y = generate_y(X,beta,relation)
     if(method=='fixed'){
-      X_k=create.fixed(X,method='equi')$Xk
+      temp = create.fixed(X,method='equi')
+      X = temp$X
+      X_k=temp$Xk
     } else if(method=='model'){
       X_k=create.gaussian(X,mu,Sigma)
     } else{
@@ -79,7 +81,11 @@ knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='l
 ```
 
 ```{r}
-temp = knockoff_result(replicate=5)
+result = knockoff_result(replicate=5)
+```
+
+```{r}
+sapply(1:ncol(result$fdp), function(j){list(mean(result$fdp[,j]),sd(result$fdp[,j]),mean(result$power[,j]),sd(result$power[,j]))})
 ```
 
 
