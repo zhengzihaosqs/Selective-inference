@@ -11,13 +11,22 @@ server=function(input, output) {
   })
   userdata <- reactive({read.csv(input$file1$datapath)})
   set.seed(1)
-  p=200; n=100; k=15
+  p=100; n=200; k=20
   mu = rep(0,p); Sigma = diag(p)
-  X = matrix(rnorm(n*p),n)
+  X = round(matrix(rnorm(n*p),n),3)
   nonzero = sample(p, k)
   beta = 3.5 * (1:p %in% nonzero)
-  y = X %*% beta + rnorm(n)
+  y = round(X %*% beta + rnorm(n),3)
   default_data=cbind(data.frame(y),data.frame(X))
+  #########################################################download##################################################
+  output$downloadData <- downloadHandler(
+    filename = function() { 
+      paste("Demo", ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(default_data, file,row.names = FALSE)
+    })
+  
   output$mydata <- DT::renderDT({
     
     # input$file1 will be NULL initially. After the user selects
@@ -56,6 +65,20 @@ server=function(input, output) {
     }
     
   })
+  ##################################################download_finsih############################################
+  output$knock_selected_covariate<-DT::renderDT({
+    data_thisstep=NULL
+    if(is.null(input$file1))
+      data_thisstep=default_data
+    else
+      data_thisstep=userdata
+    X=data_thisstep[,-1];y=data_thisstep[,1]
+  
+    result = knockoff.filter(X, y)
+    return(knock_to_dataframe(result$selected,X))
+
+  })
+  
   
   
   
@@ -87,3 +110,7 @@ server=function(input, output) {
   )
   
 }
+
+
+
+

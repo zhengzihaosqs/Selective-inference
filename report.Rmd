@@ -5,6 +5,29 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 ```{r}
 library(knockoff)
+set.seed(1)
+p=100; n=200; k=20
+mu = rep(0,p); Sigma = diag(p)
+X = round(matrix(rnorm(n*p),n),3)
+nonzero = sample(p, k)
+beta = 3.5 * (1:p %in% nonzero)
+y = round(X %*% beta + rnorm(n),3)
+default_data=cbind(data.frame(y),data.frame(X))
+datat=default_data
+result = knockoff.filter(datat[,-1], datat[,1])
+result$selected
+```
+```{r, collapse=TRUE}
+knock_to_dataframe<-function(selected,X){
+  col_name=NULL
+  if(is.null(colnames(X)))
+    col_name=paste("X",as.numeric(selected),sep = '')
+  else
+    col_name=colnames(X)[as.numeric(selected)]
+  dataf=data.frame(col_name,as.integer(selected))
+  colnames(dataf)<-c("selected_variables","selected_index")
+  return(dataf)
+}
 ```
 
 Here is my regression model:
