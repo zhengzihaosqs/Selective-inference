@@ -17,18 +17,7 @@ datat=default_data
 result = knockoff.filter(datat[,-1], datat[,1])
 result$selected
 ```
-```{r, collapse=TRUE}
-knock_to_dataframe<-function(selected,X){
-  col_name=NULL
-  if(is.null(colnames(X)))
-    col_name=paste("X",as.numeric(selected),sep = '')
-  else
-    col_name=colnames(X)[as.numeric(selected)]
-  dataf=data.frame(col_name,as.integer(selected))
-  colnames(dataf)<-c("selected_variables","selected_index")
-  return(dataf)
-}
-```
+
 
 Here is my regression model:
 

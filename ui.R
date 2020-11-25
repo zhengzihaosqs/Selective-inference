@@ -6,14 +6,14 @@
 #
 
 library(shiny)
-
+library(wordcloud2)
 # Define UI for application that draws a histogram
 ui=fluidPage(
   wordcloud2Output('mywordcloud'),
-  titlePanel ( 'Download a PDF report'),
+  titlePanel ( 'Knockoff: based on user perference'),
   tags$text ("make sure first column "),
   tags$em("This text is emphasized."),
-  tags$a(href="www.rstudio.com", "Click here!"),
+ 
   sidebarLayout(
     sidebarPanel(
       helpText(""),
@@ -38,7 +38,11 @@ ui=fluidPage(
       
       tags$hr(style="border-color: purple"),
       tags$h4("Advanced usage with custom arguments:"),
-      
+      selectInput(
+        inputId = "knockoffstat",
+        label = "Variable Importance Statistic", 
+        choices = c("lasso coefdiff", "lasso lambdadiff", "lasso lambdasmax", "Correlation","Kendall","Spearman","random forest")
+      ),
       
       
       tags$hr(style="border-color: purple"),
@@ -54,7 +58,14 @@ ui=fluidPage(
         
       )
     )
-  )
+   
+  ),
+  # WHERE YOUR FOOTER GOES
+  hr(),
+  tags$h4("Reference:"),
+  textOutput("refer1"),tags$a(href="https://projecteuclid.org/euclid.aos/1438606853", "[link]"),
+  textOutput("refer2"),tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
+  
   
 )
 

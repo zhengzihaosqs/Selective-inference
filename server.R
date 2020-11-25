@@ -3,13 +3,30 @@
 library(shiny)
 library(knockoff)
 library(wordcloud2)
+knock_to_dataframe<-function(selected,X){
+  col_name=NULL
+  if(is.null(colnames(X)))
+    col_name=paste("X",as.integer(selected),sep = '')
+  else
+    col_name=colnames(X)[as.integer(selected)]
+  selected=as.integer(selected)
+  dataf=data.frame(col_name,selected)
+  colnames(dataf)<-c("selected_variables","selected_index")
+  return(dataf)
+}
 # Define server logic required to draw a histogram
 server=function(input, output) {
+  output$refer1<-renderText({
+    "Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085."
+  })
+  output$refer2<-renderText({
+    "Candes, E., Fan, Y., Janson, L., & Lv, J. (2016). Panning for gold: Model-X knockoffs for high-dimensional controlled variable selection."
+  })
   sss=read.csv("BHword.csv",header = T)
   output$mywordcloud<-renderWordcloud2({
     wordcloud2(sss)
   })
-  userdata <- reactive({read.csv(input$file1$datapath)})
+  #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   set.seed(1)
   p=100; n=200; k=20
   mu = rep(0,p); Sigma = diag(p)
@@ -71,7 +88,9 @@ server=function(input, output) {
     if(is.null(input$file1))
       data_thisstep=default_data
     else
-      data_thisstep=userdata
+      data_thisstep=read.csv(input$file1$datapath,
+                             header = input$header)
+    data_thisstep=as.data.frame(data_thisstep)
     X=data_thisstep[,-1];y=data_thisstep[,1]
   
     result = knockoff.filter(X, y)
