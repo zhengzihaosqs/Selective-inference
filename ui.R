@@ -6,19 +6,19 @@
 #
 
 library(shiny)
+library(shinyWidgets)
 library(wordcloud2)
 # Define UI for application that draws a histogram
 ui=fluidPage(
-  wordcloud2Output('mywordcloud'),
-  titlePanel ( 'Knockoff: based on user perference'),
+  #wordcloud2Output('mywordcloud'),
+  titlePanel ( 'Knockoff: variable selection based on user perference'),
   tags$text ("make sure first column "),
   tags$em("This text is emphasized."),
  
   sidebarLayout(
     sidebarPanel(
       helpText(""),
-      textInput("name","Enter your name: ",value = "Paul Li(subject to change)"),
-      
+     
       fileInput("file1", "Upload data, choose CSV File",
                 multiple = FALSE,
                 accept = c("text/csv",
@@ -28,44 +28,86 @@ ui=fluidPage(
       radioButtons("disp", "Display my dataset",
                    choices = c(Head = "head",
                                All = "all"),
-                   selected = "head"),
-      downloadButton('downloadData', label="download default Data"),
+                   selected = "all"),
+      downloadButton('downloadData', label="Download default Data"),
       tags$hr(style="border-color: purple"),
-      selectInput('alpha', 'Enter your FDR level:',
+      selectInput('alpha', 'Select your FDR level:',
                   choices = c(0.01,0.05,0.1,0.15),selected = 0.1),
       
       
       
       tags$hr(style="border-color: purple"),
-      tags$h4("Advanced usage with custom arguments:"),
-      selectInput(
-        inputId = "knockoffstat",
-        label = "Variable Importance Statistic", 
-        choices = c("lasso coefdiff", "lasso lambdadiff", "lasso lambdasmax", "Correlation","Kendall","Spearman","random forest")
-      ),
+      downloadButton('downloadResult', label="Download Result"),
       
       
-      tags$hr(style="border-color: purple"),
-      radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
+   
+      textInput("name","Enter your name: ",value = "Paul Li"),
+      
+      radioButtons('format', 'Result report format', c('PDF', 'HTML', 'Word'),
                    inline = TRUE),
       downloadButton('downloadReport')
     ),
     
     mainPanel(
       tabsetPanel(
-        tabPanel('My dataset',DT::DTOutput('mydata')),
-        tabPanel('knockoff: Selected covariates', DT::DTOutput('knock_selected_covariate'))
-        
+        tabPanel('knockoff: Selected covariates', DT::DTOutput('knock_selected_covariate')),
+        tabPanel('My dataset',DT::DTOutput('mydata'))
       )
     )
    
   ),
+  
+  tags$div(tags$h6("The default setting is approximate model-X Gaussian knockoffs, ",style="color:red")
+           ,tags$h6("if you want to use classical fixed-X knockoff, ",style="color:red"),
+           tags$h6("make sure n>2p and click the below button",style="color:red")),
+  radioGroupButtons(
+    inputId = "fixedX",
+    label = "Label",
+    choices = c("Default", 
+                "Fixed-X"),
+    status = "primary",
+    checkIcon = list(
+      yes = icon("ok", 
+                 lib = "glyphicon"),
+      no = icon("remove",
+                lib = "glyphicon"))
+  ),
+  tags$h4("Advanced usage with custom arguments:"),
+  selectInput(
+    inputId = "knockoffstat",
+    label = "Knockoff Statistic", 
+    choices = c("lasso coefdiff", "lasso lambdadiff", "lasso lambdasmax", "Correlation","Kendall","Spearman"),
+    selected = "lasso coefdiff"
+  ),
+  tags$h5("If you want to model your data with GLM, you can specify the Corresponding family and knockoff statistics:"),
+  radioGroupButtons(
+    inputId = "expfamily",
+    label = "Choices of exponential family:", 
+    choices = c("None","gaussian", "binomial", "poisson", "multinomial"),selected ="None" 
+  ), 
+  
+  radioGroupButtons(
+    inputId = "expfamilyknockstat",
+    label = "Choices of knockoff statistics for exponential family:", 
+    choices = c("coefficient difference", "lambda difference"),selected ="coefficient difference"
+  ), 
+  tags$h4("Extra Method to do variable selection",style="color:blue"),
+  radioGroupButtons(
+    inputId = "extraMethod",
+    choices = c("None","random forest", "sqrt lasso","stability selection"),selected ="None"
+  ), 
   # WHERE YOUR FOOTER GOES
   hr(),
   tags$h4("Reference:"),
-  textOutput("refer1"),tags$a(href="https://projecteuclid.org/euclid.aos/1438606853", "[link]"),
-  textOutput("refer2"),tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
-  
+  tags$div(
+    "Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085.",
+    tags$a(href="https://projecteuclid.org/euclid.aos/1438606853", "[link]")
+  ),
+  tags$div(
+    "Candes, E., Fan, Y., Janson, L., & Lv, J. (2016). Panning for gold: Model-X knockoffs for high-dimensional controlled variable selection.",
+    tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
+  )
+ 
   
 )
 

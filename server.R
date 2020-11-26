@@ -16,16 +16,12 @@ knock_to_dataframe<-function(selected,X){
 }
 # Define server logic required to draw a histogram
 server=function(input, output) {
-  output$refer1<-renderText({
-    "Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085."
-  })
-  output$refer2<-renderText({
-    "Candes, E., Fan, Y., Janson, L., & Lv, J. (2016). Panning for gold: Model-X knockoffs for high-dimensional controlled variable selection."
-  })
-  sss=read.csv("BHword.csv",header = T)
-  output$mywordcloud<-renderWordcloud2({
-    wordcloud2(sss)
-  })
+  
+  
+  #sss=read.csv("BHword.csv",header = T)
+ # output$mywordcloud<-renderWordcloud2({
+  #  wordcloud2(sss)
+ # })
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   set.seed(1)
   p=100; n=200; k=20
@@ -83,7 +79,7 @@ server=function(input, output) {
     
   })
   ##################################################download_finsih############################################
-  output$knock_selected_covariate<-DT::renderDT({
+  result_selected<-reactive({
     data_thisstep=NULL
     if(is.null(input$file1))
       data_thisstep=default_data
@@ -97,15 +93,23 @@ server=function(input, output) {
     return(knock_to_dataframe(result$selected,X))
 
   })
-  
+  output$knock_selected_covariate<-DT::renderDT({result_selected()})
   
   
   
   #############################################################################################################
   ##### final stage: create a pdf report using "report.Rmd"
+  output$downloadResult<-downloadHandler(
+    filename = function() { 
+      paste("Selected", ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(result_selected(), file,row.names = FALSE)
+    })
+  
   output$downloadReport <- downloadHandler(
     filename = function() {
-      paste('my-report', sep = '.', switch(
+      paste('myreport', sep = '.', switch(
         input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
       ))
     },
