@@ -15,11 +15,11 @@ library(doMC)
 library(shiny)
 library(MASS)
 library(ranger)
-library(mpmi)
 ```
 
 ```{r}
 generate_y<-function(X, beta, relation){
+  n=nrow(X)
   if(relation=='linear'){
     y = X %*% beta + rnorm(n)
   } else if(relation=='sin'){
@@ -35,14 +35,14 @@ generate_y<-function(X, beta, relation){
 ```
 
 ```{r}
-knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='linear', method='fixed'){
+knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, b=3.5, relation='linear', method='fixed'){
   fdp_matrix <- data.frame()
   power_matrix <- data.frame()
   for(i in 1:replicate){
     mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
     X = mvrnorm(n,mu,Sigma)
     nonzero = sample(p, k)
-    beta = 3.5 * (1:p %in% nonzero)
+    beta = b * (1:p %in% nonzero)
     y = generate_y(X,beta,relation)
     if(method=='fixed'){
       temp = create.fixed(X,method='equi')
@@ -61,11 +61,8 @@ knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='l
     kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_k[,j],method = c("kendall")))})
     spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_k[,j],method = c("spearman")))})
     RF_W=stat.random_forest(X, X_k, y)
-    MI_W=sapply(1:p, function(j) {
-      cmi(cbind(y,X[,j]))$bcmi[1,2] -
-      cmi(cbind(y,X_k[,j]))$bcmi[1,2]})
     W = data.frame(coefdiff=coefdiff_W, lambdadiff=lambdadiff_W, lambdasmax=lambdasmax_W, pearson=pearson_W,
-                   kendall=kendall_W, spearman=spearman_W, RF=RF_W, MI=MI_W)
+                   kendall=kendall_W, spearman=spearman_W, RF=RF_W)
     discoveries=sapply(1:ncol(W),function(j) {which(W[,j]>knockoff.threshold(W[,j],fdr))})
     fdp = sapply(1:ncol(W), function(j) {sum(1 - discoveries[[j]] %in% nonzero)/max(length(discoveries[[j]]),1)})
     power = sapply(1:ncol(W), function(j) {sum(discoveries[[j]] %in% nonzero)/k})
@@ -73,19 +70,165 @@ knockoff_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, relation='l
     power_matrix = rbind(power_matrix,power)
   }
   colnames(fdp_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'pearson', 'kendall', 'spearman',
-                            'random forest', 'mutual information')
+                            'random forest')
   colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'pearson', 'kendall', 'spearman',
-                            'random forest', 'mutual information')
+                            'random forest')
   return(list(fdp = fdp_matrix, power = power_matrix))
 }
 ```
 
 ```{r}
-result = knockoff_result(replicate=5)
+knockoff_summary<-function(result){
+  summary_matrix = as.matrix(sapply(1:ncol(result$fdp), function(j){
+    round(c(mean(result$fdp[,j]),sd(result$fdp[,j]),mean(result$power[,j]),sd(result$power[,j])),4)
+    }))
+  rownames(summary_matrix)<-c("Average FDP","Standard deviation of FDP", "Average power", "Standard deviation of power")
+  colnames(summary_matrix)<-c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'pearson', 'kendall', 'spearman',
+                            'random forest')
+  return(summary_matrix)
+}
 ```
 
 ```{r}
-sapply(1:ncol(result$fdp), function(j){list(mean(result$fdp[,j]),sd(result$fdp[,j]),mean(result$power[,j]),sd(result$power[,j]))})
+knockoff_bin_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, b=3.5, relation='logistic', method='model'){
+  fdp_matrix <- data.frame()
+  power_matrix <- data.frame()
+  for(i in 1:replicate){
+    mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n,mu,Sigma)
+    nonzero = sample(p, k)
+    beta = b * (1:p %in% nonzero)
+    y = generate_y(X,beta,"logistic")
+    if(method=='fixed'){
+      temp = create.fixed(X,method='equi')
+      X = temp$X
+      X_k=temp$Xk
+    } else if(method=='model'){
+      X = create.fixed(X,method='equi')$X
+      X_k=create.gaussian(X,mu,Sigma)
+    } else{
+      stop('Wrong method')
+    }
+    
+    coefdiff_W=stat.lasso_coefdiff(X, X_k, y)
+    lambdadiff_W=stat.lasso_lambdadiff(X, X_k, y)
+    lambdasmax_W=stat.lasso_lambdasmax(X, X_k, y)
+    coefdiff_bin_W=stat.lasso_coefdiff_bin(X, X_k, y)
+    lambdadiff_bin_W=stat.lasso_lambdadiff_bin(X, X_k, y)
+    lambdasmax_bin_W=stat.lasso_lambdasmax_bin(X, X_k, y)
+    RF_W=stat.random_forest(X, X_k, y)
+    W = data.frame(coefdiff=coefdiff_W, lambdadiff=lambdadiff_W, lambdasmax=lambdasmax_W, coefdiff_bin=coefdiff_bin_W,
+                   lambdadiff_bin=lambdadiff_bin_W, lambdasmax_bin=lambdasmax_bin_W, RF=RF_W)
+    discoveries=sapply(1:ncol(W),function(j) {which(W[,j]>knockoff.threshold(W[,j],fdr))})
+    fdp = sapply(1:ncol(W), function(j) {sum(1 - discoveries[[j]] %in% nonzero)/max(length(discoveries[[j]]),1)})
+    power = sapply(1:ncol(W), function(j) {sum(discoveries[[j]] %in% nonzero)/k})
+    fdp_matrix = rbind(fdp_matrix,fdp)
+    power_matrix = rbind(power_matrix,power)
+  }
+  colnames(fdp_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'coefdiff_bin', 'lambdadiff_bin', 'lambdasmax_bin',
+                            'random forest')
+  colnames(power_matrix) <- c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'coefdiff_bin', 'lambdadiff_bin', 'lambdasmax_bin',
+                            'random forest')
+  return(list(fdp = fdp_matrix, power = power_matrix))
+}
+```
+
+```{r}
+knockoff_bin_summary<-function(result){
+  summary_matrix = as.matrix(sapply(1:ncol(result$fdp), function(j){
+    round(c(mean(result$fdp[,j]),sd(result$fdp[,j]),mean(result$power[,j]),sd(result$power[,j])),4)
+    }))
+  rownames(summary_matrix)<-c("Average FDP","Standard deviation of FDP", "Average power", "Standard deviation of power")
+  colnames(summary_matrix)<-c('lasso_coefdiff','lasso_lambdadiff','lasso_lambdasmax', 'coefdiff_bin', 'lambdadiff_bin', 'lambdasmax_bin',
+                            'random forest')
+  return(summary_matrix)
+}
+```
+
+```{r}
+set.seed(123)
+start_time <- Sys.time()
+fixed_linear_k20 = knockoff_summary(knockoff_result(k=20, replicate=100, relation='linear', method='fixed'))
+model_linear_k20 = knockoff_summary(knockoff_result(k=20, replicate=100, relation='linear', method='model'))
+model_sin_k20 = knockoff_summary(knockoff_result(k=20, replicate=100, relation='sin', method='model'))
+model_logistic_k20 = knockoff_summary(knockoff_result(k=20, replicate=100, relation='logistic', method='model'))
+model_bin_logistic_k20 = knockoff_bin_summary(knockoff_bin_result(k=20, replicate=100, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k40 = knockoff_summary(knockoff_result(k=40, replicate=100, relation='linear', method='fixed'))
+model_linear_k40 = knockoff_summary(knockoff_result(k=40, replicate=100, relation='linear', method='model'))
+model_sin_k40 = knockoff_summary(knockoff_result(k=40, replicate=100, relation='sin', method='model'))
+model_logistic_k40 = knockoff_summary(knockoff_result(k=40, replicate=100, relation='logistic', method='model'))
+model_bin_logistic_k40 = knockoff_bin_summary(knockoff_bin_result(k=40, replicate=100, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k60 = knockoff_summary(knockoff_result(k=60, replicate=100, relation='linear', method='fixed'))
+model_linear_k60 = knockoff_summary(knockoff_result(k=60, replicate=100, relation='linear', method='model'))
+model_sin_k60 = knockoff_summary(knockoff_result(k=60, replicate=100, relation='sin', method='model'))
+model_logistic_k60 = knockoff_summary(knockoff_result(k=60, replicate=100, relation='logistic', method='model'))
+model_bin_logistic_k60 = knockoff_bin_summary(knockoff_bin_result(k=60, replicate=100, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k80 = knockoff_summary(knockoff_result(k=80, replicate=100, relation='linear', method='fixed'))
+model_linear_k80 = knockoff_summary(knockoff_result(k=80, replicate=100, relation='linear', method='model'))
+model_sin_k80 = knockoff_summary(knockoff_result(k=80, replicate=100, relation='sin', method='model'))
+model_logistic_k80 = knockoff_summary(knockoff_result(k=80, replicate=100, relation='logistic', method='model'))
+model_bin_logistic_k80 = knockoff_bin_summary(knockoff_bin_result(k=80, replicate=100, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k100 = knockoff_summary(knockoff_result(k=100, replicate=100, relation='linear', method='fixed'))
+model_linear_k100 = knockoff_summary(knockoff_result(k=100, replicate=100, relation='linear', method='model'))
+model_sin_k100 = knockoff_summary(knockoff_result(k=100, replicate=100, relation='sin', method='model'))
+model_logistic_k100 = knockoff_summary(knockoff_result(k=100, replicate=100, relation='logistic', method='model'))
+model_bin_logistic_k100 = knockoff_bin_summary(knockoff_bin_result(k=100, replicate=100, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k20_b1 = knockoff_summary(knockoff_result(k=20, replicate=100, b=1, relation='linear', method='fixed'))
+model_linear_k20_b1 = knockoff_summary(knockoff_result(k=20, replicate=100, b=1, relation='linear', method='model'))
+model_sin_k20_b1 = knockoff_summary(knockoff_result(k=20, replicate=100, b=1, relation='sin', method='model'))
+model_logistic_k20_b1 = knockoff_summary(knockoff_result(k=20, replicate=100, b=1, relation='logistic', method='model'))
+model_bin_logistic_k20_b1 = knockoff_bin_summary(knockoff_bin_result(k=20, replicate=100, b=1, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k40_b1 = knockoff_summary(knockoff_result(k=40, replicate=100, b=1, relation='linear', method='fixed'))
+model_linear_k40_b1 = knockoff_summary(knockoff_result(k=40, replicate=100, b=1, relation='linear', method='model'))
+model_sin_k40_b1 = knockoff_summary(knockoff_result(k=40, replicate=100, b=1, relation='sin', method='model'))
+model_logistic_k40_b1 = knockoff_summary(knockoff_result(k=40, replicate=100, b=1, relation='logistic', method='model'))
+model_bin_logistic_k40_b1 = knockoff_bin_summary(knockoff_bin_result(k=40, replicate=100, b=1, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k60_b1 = knockoff_summary(knockoff_result(k=60, replicate=100, b=1, relation='linear', method='fixed'))
+model_linear_k60_b1 = knockoff_summary(knockoff_result(k=60, replicate=100, b=1, relation='linear', method='model'))
+model_sin_k60_b1 = knockoff_summary(knockoff_result(k=60, replicate=100, b=1, relation='sin', method='model'))
+model_logistic_k60_b1 = knockoff_summary(knockoff_result(k=60, replicate=100, b=1, relation='logistic', method='model'))
+model_bin_logistic_k60_b1 = knockoff_bin_summary(knockoff_bin_result(k=60, replicate=100, b=1, relation='logistic', method='model'))
+```
+
+```{r}
+fixed_linear_k80_b1 = knockoff_summary(knockoff_result(k=80, replicate=100, b=1, relation='linear', method='fixed'))
+model_linear_k80_b1 = knockoff_summary(knockoff_result(k=80, replicate=100, b=1, relation='linear', method='model'))
+model_sin_k80_b1 = knockoff_summary(knockoff_result(k=80, replicate=100, b=1, relation='sin', method='model'))
+model_logistic_k80_b1 = knockoff_summary(knockoff_result(k=80, replicate=100, b=1, relation='logistic', method='model'))
+model_bin_logistic_k80_b1 = knockoff_bin_summary(knockoff_bin_result(k=80, replicate=100, b=1, relation='logistic', method='model'))
+```
+
+
+```{r}
+fixed_linear_k100_b1 = knockoff_summary(knockoff_result(k=100, replicate=100, b=1, relation='linear', method='fixed'))
+model_linear_k100_b1 = knockoff_summary(knockoff_result(k=100, replicate=100, b=1, relation='linear', method='model'))
+model_sin_k100_b1 = knockoff_summary(knockoff_result(k=100, replicate=100, b=1, relation='sin', method='model'))
+model_logistic_k100_b1 = knockoff_summary(knockoff_result(k=100, replicate=100, b=1, relation='logistic', method='model'))
+model_bin_logistic_k100_b1 = knockoff_bin_summary(knockoff_bin_result(k=100, replicate=100, b=1, relation='logistic', method='model'))
+
+end_time <- Sys.time()
+end_time - start_time
 ```
 
 
