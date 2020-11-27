@@ -62,15 +62,8 @@ ui=fluidPage(
            tags$h6("make sure n>2p and click the below button",style="color:red")),
   radioGroupButtons(
     inputId = "fixedX",
-    label = "Label",
-    choices = c("Default", 
-                "Fixed-X"),
-    status = "primary",
-    checkIcon = list(
-      yes = icon("ok", 
-                 lib = "glyphicon"),
-      no = icon("remove",
-                lib = "glyphicon"))
+    choices = c("Model-X", 
+                "Fixed-X"),selected = "Model-X"
   ),
   tags$h4("Advanced usage with custom arguments:"),
   selectInput(

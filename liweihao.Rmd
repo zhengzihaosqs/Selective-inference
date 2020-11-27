@@ -46,7 +46,7 @@ result_VIM_cor_fixed_X<-function(p=200,n=500,k=40,fdr=0.1,Nreplicate=100){
     pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_tilde[,j]))})
     kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_tilde[,j],method = c("kendall")))})
     spearman_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_tilde[,j],method = c("spearman")))})
-    #MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
+    MIC_W=sapply(1:p,function(j){mine(y,X[,j])$MIC-mine(y,X_tilde[,j])$MIC})
     thres_pearson=knockoff.threshold( pearson_W,fdr); discoveries_pearson = which(pearson_W > thres_pearson)
     thres_kendall=knockoff.threshold( kendall_W,fdr); discoveries_kendall = which(kendall_W > thres_kendall)
     thres_spearman=knockoff.threshold(spearman_W,fdr);discoveries_spearman=which(spearman_W>thres_spearman)

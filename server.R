@@ -14,6 +14,25 @@ knock_to_dataframe<-function(selected,X){
   colnames(dataf)<-c("selected_variables","selected_index")
   return(dataf)
 }
+knockoff_result<-function(X, y, Fdr=0.1, relation='linear', method){
+  if(method!="Fixed-X")
+    return(knockoff.filter(X,y,fdr=Fdr))
+  if(method=="Fixed-X")
+    return(knockoff.filter(X,y,knockoffs=create.fixed,fdr=Fdr))
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
 # Define server logic required to draw a histogram
 server=function(input, output) {
   
@@ -79,21 +98,51 @@ server=function(input, output) {
     
   })
   ##################################################download_finsih############################################
-  result_selected<-reactive({
-    data_thisstep=NULL
-    if(is.null(input$file1))
-      data_thisstep=default_data
-    else
-      data_thisstep=read.csv(input$file1$datapath,
-                             header = input$header)
-    data_thisstep=as.data.frame(data_thisstep)
-    X=data_thisstep[,-1];y=data_thisstep[,1]
-  
-    result = knockoff.filter(X, y)
-    return(knock_to_dataframe(result$selected,X))
+  nofinding<-data.frame(result="No discovery! Try a higher fdr level")
+  data_thissstep<-reactive({
 
+    if(is.null(input$file1))
+      return(default_data)
+    else
+      return(as.data.frame(read.csv(input$file1$datapath,
+                             header = input$header)))
   })
-  output$knock_selected_covariate<-DT::renderDT({result_selected()})
+  
+  result_userinput<-reactive({
+    data_thisstep<-data_thissstep()
+    X1=data_thisstep[,-1]
+    y1=data_thisstep[,1]
+    
+    #result_users<-knockoff_result(X1, y1, input$alpha, relation='linear', input$fixedX)
+    showNotification(
+      paste("You choose ",input$fixedX,"with fdr level = ",input$alpha)
+    )
+    method=input$fixedX
+    if(method=="Model-X")
+      reu=knockoff.filter(X1,y1,fdr=input$alpha)
+    if(method=="Fixed-X")
+      reu=knockoff.filter(X1,y1,knockoffs=create.fixed,fdr=input$alpha)
+    #reu=result_users
+    thres=reu$threshold
+    if(thres==Inf)
+      return(nofinding)
+    else
+      return(knock_to_dataframe(reu$selected,X1))
+  })
+  output$knock_selected_covariate<-DT::renderDT({result_userinput()})
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   
