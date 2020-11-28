@@ -3,6 +3,7 @@
 library(shiny)
 library(knockoff)
 library(wordcloud2)
+library(ranger)
 knock_to_dataframe<-function(selected,X){
   col_name=NULL
   if(is.null(colnames(X)))
@@ -14,23 +15,6 @@ knock_to_dataframe<-function(selected,X){
   colnames(dataf)<-c("selected_variables","selected_index")
   return(dataf)
 }
-knockoff_result<-function(X, y, Fdr=0.1, relation='linear', method){
-  if(method!="Fixed-X")
-    return(knockoff.filter(X,y,fdr=Fdr))
-  if(method=="Fixed-X")
-    return(knockoff.filter(X,y,knockoffs=create.fixed,fdr=Fdr))
-    
-}
-
-
-
-
-
-
-
-
-
-
 
 
 # Define server logic required to draw a histogram
@@ -42,14 +26,14 @@ server=function(input, output) {
   #  wordcloud2(sss)
  # })
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
-  set.seed(1)
-  p=100; n=200; k=20
+  #set.seed(1)
+  p=100; n=250; k=20
   mu = rep(0,p); Sigma = diag(p)
-  X = round(matrix(rnorm(n*p),n),3)
+  Xd = round(matrix(rnorm(n*p),n),3)
   nonzero = sample(p, k)
-  beta = 3.5 * (1:p %in% nonzero)
-  y = round(X %*% beta + rnorm(n),3)
-  default_data=cbind(data.frame(y),data.frame(X))
+  beta = 10 * (1:p %in% nonzero)
+  yd = round(Xd %*% beta + rnorm(n),3)
+  default_data=cbind(data.frame(yd),data.frame(Xd))
   #########################################################download##################################################
   output$downloadData <- downloadHandler(
     filename = function() { 
@@ -72,7 +56,6 @@ server=function(input, output) {
         return(default_data)
       }
     }
-    
     
     req(input$file1)
     
@@ -98,8 +81,8 @@ server=function(input, output) {
     
   })
   ##################################################download_finsih############################################
-  nofinding<-data.frame(result="No discovery! Try a higher fdr level")
-  data_thissstep<-reactive({
+  nofinding<-data.frame(result="No discovery! Try a higher fdr level OR Chnage knockoff statistic")
+  data_for_analysis<-reactive({
 
     if(is.null(input$file1))
       return(default_data)
@@ -108,23 +91,273 @@ server=function(input, output) {
                              header = input$header)))
   })
   
-  result_userinput<-reactive({
-    data_thisstep<-data_thissstep()
+  # look whether result_selected change or not : to make sure it is reactive#########
+  ########################################
+  return_X_Xk<-reactive({
+    data_thisstep<-data_for_analysis()
+    method=input$fixedX
+    FDR=input$alpha
     X1=data_thisstep[,-1]
     y1=data_thisstep[,1]
+    if(method=='Model-X'){
+      X_k=create.second_order(as.matrix(X1))
+      return(list(ori_X=X1,X_=X1,Xk=X_k,y=y1))
+    } else{
+      temp = create.fixed(X1)
+      return(list(ori_X=X1,X_=temp$X,Xk=temp$Xk,y=y1))
+    } 
+  })
+  result_userinput<-reactive({
+    data_need=return_X_Xk()
+    original_X=data_need$ori_X
+    X=data_need$X_
+    X_k=data_need$Xk
+    y=data_need$y
+    FDR=input$alpha
+    #   inputId = "expfamily",  inputId = "knockoffstat", inputId = "expfamilyknockstat",   inputId = "extraMethod",
+    if(input$extraMethod=="None"){
+      if(input$expfamily=="None"){
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # run default here with different importance measure start
+        if(input$knockoffstat=="lasso coefdiff"){
+          showNotification("Using coefficient difference to measure variable importance under LASSO")
+          k_stat=stat.lasso_coefdiff(X,X_k,y)
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="lasso lambdadiff"){
+          showNotification("Using difference of entering time to measure variable importance under LASSO")
+          k_stat=stat.lasso_lambdadiff(X,X_k,y)
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="lasso lambdasmax"){
+          showNotification("Using signed maximum entering time to measure variable importance under LASSO")
+          k_stat=stat.lasso_lambdasmax(X,X_k,y)
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="Correlation difference"){
+          showNotification("Using pairwise sample correlation to measure variable importance")
+          k_stat=sapply(1:ncol(X),function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_k[,j]))})
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="Correlation difference"){
+          showNotification("Using pairwise sample correlation to measure variable importance")
+          k_stat=sapply(1:ncol(X),function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_k[,j]))})
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="Kendall"){
+          showNotification("Using nonparametric correlation Kendall tau to measure variable importance")
+          k_stat=sapply(1:ncol(X),function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_k[,j],method = c("kendall")))})
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if(input$knockoffstat=="Spearman"){
+          showNotification("Using nonparametric Spearman correlation to measure variable importance")
+          k_stat=sapply(1:ncol(X),function(j) {abs(cor(y,X[,j],method = c("spearman")))-abs(cor(y,X_k[,j],method = c("spearman")))})
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # run default here with different importance measure finish
+      }
+      else{
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # run expfamily here with different importance measure start
+        if((input$expfamily=="binomial")&(input$expfamilyknockstat=="coefficient difference")){
+          showNotification("Using coefficient difference to measure variable importance under logistics regression")
+          k_stat=stat.glmnet_coefdiff(X,X_k,y,family = "binomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="binomial")&(input$expfamilyknockstat=="lambda difference")){
+          showNotification("Using difference of entering time to measure variable importance under logistics regression")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "binomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="binomial")&(input$expfamilyknockstat=="lambda max")){
+          showNotification("Using signed maximum entering time to measure variable importance under logistics regression")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "binomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="poisson")&(input$expfamilyknockstat=="coefficient difference")){
+          showNotification("Using coefficient difference to measure variable importance for non-negative counts")
+          k_stat=stat.glmnet_coefdiff(X,X_k,y,family = "poisson")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="poisson")&(input$expfamilyknockstat=="lambda difference")){
+          showNotification("Using difference of entering time to measure variable importance for non-negative counts")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "poisson")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="poisson")&(input$expfamilyknockstat=="lambda max")){
+          showNotification("Using signed maximum entering time to measure variable importance for non-negative counts")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "poisson")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="multinomial")&(input$expfamilyknockstat=="coefficient difference")){
+          showNotification("Using coefficient difference to measure variable importance for multiple levels factor")
+          k_stat=stat.glmnet_coefdiff(X,X_k,y,family = "multinomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="multinomial")&(input$expfamilyknockstat=="lambda difference")){
+          showNotification("Using difference of entering time to measure variable importance for multiple levels factor")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "multinomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+        if((input$expfamily=="multinomial")&(input$expfamilyknockstat=="lambda max")){
+          showNotification("Using signed maximum entering time to measure variable importance for multiple levels factor")
+          k_stat=stat.glmnet_lambdadiff(X,X_k,y,family = "multinomial")
+          thres=knockoff.threshold(k_stat,fdr=FDR)
+          if(thres>10000)
+            return(nofinding)
+          else{
+            discoveries_index = which(k_stat > thres)
+            return(knock_to_dataframe(discoveries_index,original_X))
+          }
+        }
+      
+        #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # run expfamily here with different importance measure finish
+      }
+    }
+    else{
+      #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      # EXTA METHOD part begin
+      if(input$extraMethod=="random forest"){
+        showNotification("Using random forest to compute variable importance.")
+        k_stat=stat.random_forest(X,X_k,y)
+        thres=knockoff.threshold(k_stat,fdr=FDR)
+        if(thres>10000)
+          return(nofinding)
+        else{
+          discoveries_index = which(k_stat > thres)
+          return(knock_to_dataframe(discoveries_index,original_X))
+        }
+      }
+      if(input$extraMethod=="sqrt lasso"){
+        showNotification("Using signed maximum lambda in square root lasso to compute variable importance.")
+        k_stat=stat.sqrt_lasso(X,X_k,y)
+        thres=knockoff.threshold(k_stat,fdr=FDR)
+        if(thres>10000)
+          return(nofinding)
+        else{
+          discoveries_index = which(k_stat > thres)
+          return(knock_to_dataframe(discoveries_index,original_X))
+        }
+      }
+      if(input$extraMethod=="stability selection"){
+        showNotification("Using stability selection to measure variable importance.")
+        k_stat=stat.stability_selection(X,X_k,y)
+        thres=knockoff.threshold(k_stat,fdr=FDR)
+        if(thres>10000)
+          return(nofinding)
+        else{
+          discoveries_index = which(k_stat > thres)
+          return(knock_to_dataframe(discoveries_index,original_X))
+        }
+      }
+      #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      # EXTA METHOD part finish
+    }
     
-    #result_users<-knockoff_result(X1, y1, input$alpha, relation='linear', input$fixedX)
+    
+    
+    
+      
+    result_users<-knockoff_result(X1, y1, input$alpha, relation='linear', input$fixedX)
     showNotification(
       paste("You choose ",input$fixedX,"with fdr level = ",input$alpha)
     )
-    method=input$fixedX
-    if(method=="Model-X")
-      reu=knockoff.filter(X1,y1,fdr=input$alpha)
-    if(method=="Fixed-X")
-      reu=knockoff.filter(X1,y1,knockoffs=create.fixed,fdr=input$alpha)
-    #reu=result_users
+    reu=result_users
     thres=reu$threshold
-    if(thres==Inf)
+    if(thres>10000)
       return(nofinding)
     else
       return(knock_to_dataframe(reu$selected,X1))
@@ -153,33 +386,10 @@ server=function(input, output) {
       paste("Selected", ".csv", sep="")
     },
     content = function(file) {
-      write.csv(result_selected(), file,row.names = FALSE)
+      write.csv(result_userinput(), file,row.names = FALSE)
     })
   
-  output$downloadReport <- downloadHandler(
-    filename = function() {
-      paste('myreport', sep = '.', switch(
-        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
-      ))
-    },
-    
-    content = function(file) {
-      src <- normalizePath('report.Rmd')
-      
-      # temporarily switch to the temp dir, in case you do not have write
-      # permission to the current working directory
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'report.Rmd', overwrite = TRUE)
-      
-      library(rmarkdown)
-      out <- render('report.Rmd', switch(
-        input$format,
-        PDF = pdf_document(), HTML = html_document(), Word = word_document()
-      ))
-      file.rename(out, file)
-    }
-  )
+  
   
 }
 
