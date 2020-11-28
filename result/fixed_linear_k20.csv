@@ -1,0 +1,5 @@
+"","lasso_coefdiff","lasso_lambdadiff","lasso_lambdasmax","pearson","kendall","spearman","random forest"
+"Average FDP",0.0597,0.0687,0.0613,0.0806,0.0714,0.0699,0.0733
+"Standard deviation of FDP",0.0698,0.0774,0.0691,0.0859,0.0745,0.0749,0.0813
+"Average power",1,1,1,1,0.834,0.83,0.8135
+"Standard deviation of power",0,0,0,0,0.1662,0.1978,0.2053

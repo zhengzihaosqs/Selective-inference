@@ -230,5 +230,9 @@ end_time <- Sys.time()
 end_time - start_time
 ```
 
+```{r}
+write.csv(fixed_linear_k20)
+```
+
 
 
