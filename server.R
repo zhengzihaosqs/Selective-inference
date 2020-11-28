@@ -21,10 +21,10 @@ knock_to_dataframe<-function(selected,X){
 server=function(input, output) {
   
   
-  #sss=read.csv("BHword.csv",header = T)
- # output$mywordcloud<-renderWordcloud2({
-  #  wordcloud2(sss)
- # })
+  sss=read.csv("BHword.csv",header = T)
+  output$mywordcloud<-renderWordcloud2({
+    wordcloud2(sss)
+  })
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   #set.seed(1)
   p=100; n=250; k=20

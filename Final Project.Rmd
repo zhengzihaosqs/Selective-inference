@@ -104,7 +104,6 @@ knockoff_bin_result<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, b=3.5, 
       X = temp$X
       X_k=temp$Xk
     } else if(method=='model'){
-      X = create.fixed(X,method='equi')$X
       X_k=create.gaussian(X,mu,Sigma)
     } else{
       stop('Wrong method')
