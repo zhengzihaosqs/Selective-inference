@@ -10,7 +10,7 @@ library(shinyWidgets)
 library(wordcloud2)
 # Define UI for application that draws a histogram
 ui=fluidPage(
-  wordcloud2Output('mywordcloud'),
+ 
   titlePanel ( 'Knockoff: variable selection based on user perference'),
   tags$text ("Due to randomness, you may try several times on same setting."),
   tags$em("This text is emphasized."),
@@ -99,7 +99,8 @@ ui=fluidPage(
   tags$div(
     "Candes, E., Fan, Y., Janson, L., & Lv, J. (2016). Panning for gold: Model-X knockoffs for high-dimensional controlled variable selection.",
     tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
-  )
+  ),
+  wordcloud2Output('mywordcloud')
  
   
 )
