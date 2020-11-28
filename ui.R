@@ -59,7 +59,11 @@ ui=fluidPage(
   radioGroupButtons(
     inputId = "fixedX",label="",
     choices = c("Model-X", 
-                "Fixed-X"),selected = "Model-X",status = "primary"
+                "Fixed-X"),selected = "Model-X",status = "primary",checkIcon = list(
+                  yes = icon("ok", 
+                             lib = "glyphicon"),
+                  no = icon("remove",
+                            lib = "glyphicon"))
   ),
   tags$h4("Advanced usage with custom arguments:"),
   selectInput(

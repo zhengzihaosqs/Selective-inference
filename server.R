@@ -4,6 +4,8 @@ library(shiny)
 library(knockoff)
 library(wordcloud2)
 library(ranger)
+library(stabs)
+library(RPtests)
 knock_to_dataframe<-function(selected,X){
   col_name=NULL
   if(is.null(colnames(X)))
@@ -27,11 +29,11 @@ server=function(input, output) {
   })
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   #set.seed(1)
-  p=100; n=250; k=20
+  p=200; n=500; k=40
   mu = rep(0,p); Sigma = diag(p)
   Xd = round(matrix(rnorm(n*p),n),3)
   nonzero = sample(p, k)
-  beta = 10 * (1:p %in% nonzero)
+  beta = 3.5 * (1:p %in% nonzero)
   yd = round(Xd %*% beta + rnorm(n),3)
   default_data=cbind(data.frame(yd),data.frame(Xd))
   #########################################################download##################################################
@@ -93,25 +95,35 @@ server=function(input, output) {
   
   # look whether result_selected change or not : to make sure it is reactive#########
   ########################################
+  
+  
+  
   return_X_Xk<-reactive({
     data_thisstep<-data_for_analysis()
-    method=input$fixedX
-    FDR=input$alpha
+
     X1=data_thisstep[,-1]
     y1=data_thisstep[,1]
-    if(method=='Model-X'){
-      X_k=create.second_order(as.matrix(X1))
-      return(list(ori_X=X1,X_=X1,Xk=X_k,y=y1))
-    } else{
-      temp = create.fixed(X1)
-      return(list(ori_X=X1,X_=temp$X,Xk=temp$Xk,y=y1))
-    } 
+    X_k_second=create.second_order(as.matrix(X1))
+    temp = create.fixed(X1)
+    
+    return(list(ori_X=X1,X_fixed=temp$X,Xk_fixed=temp$Xk,Xk_modelX=X_k_second,y=y1))
+   
   })
+  
+  
   result_userinput<-reactive({
     data_need=return_X_Xk()
     original_X=data_need$ori_X
-    X=data_need$X_
-    X_k=data_need$Xk
+    X=NULL
+    X_k=NULL
+    if(input$fixedX=="Model-X"){
+      X=as.matrix(data_need$ori_X)
+      X_k=as.matrix(data_need$Xk_modelX)
+    }
+    else{
+      X=as.matrix(data_need$X_fixed)
+      X_k=as.matrix(data_need$Xk_fixed)
+    }
     y=data_need$y
     FDR=input$alpha
     #   inputId = "expfamily",  inputId = "knockoffstat", inputId = "expfamilyknockstat",   inputId = "extraMethod",
@@ -364,21 +376,7 @@ server=function(input, output) {
   })
   output$knock_selected_covariate<-DT::renderDT({result_userinput()})
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   #############################################################################################################
   ##### final stage: create a pdf report using "report.Rmd"
   output$downloadResult<-downloadHandler(
