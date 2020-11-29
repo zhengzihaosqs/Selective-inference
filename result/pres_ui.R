@@ -13,7 +13,7 @@ library(shiny)
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Old Faithful Geyser Data"),
+  titlePanel("Presentation of Project result"),
   
   # Sidebar with a slider input for number of bins 
   sidebarLayout(
@@ -27,7 +27,14 @@ shinyUI(fluidPage(
     
     # Show a plot of the generated distribution
     mainPanel(
-       plotOutput("distPlot")
+      tabsetPanel(
+        tabPanel("Summary", dataTableOutput("dis")),
+        tabPanel("Plot",
+                 # fluidRow(...)
+                 plotOutput("plot1"),
+                 plotOutput("plot2")
+        )
+      )
     )
   )
 ))
