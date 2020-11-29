@@ -21,7 +21,7 @@ knock_to_dataframe<-function(selected,X){
 
 # Define server logic required to draw a histogram
 server=function(input, output) {
-  
+  showModal(modalDialog("This online app is designed to run knockoff method for a user",footer = modalButton("Get it!")))
   
   sss=read.csv("BHword.csv",header = T)
   output$mywordcloud<-renderWordcloud2({
@@ -99,8 +99,10 @@ server=function(input, output) {
   
   
   return_X_Xk<-reactive({
+    input$do
+    observeEvent(input$do,{showModal(modalDialog("The knockoff copy for model-X changes!"))})
     data_thisstep<-data_for_analysis()
-
+   
     X1=data_thisstep[,-1]
     y1=data_thisstep[,1]
     X_k_second=create.second_order(as.matrix(X1))

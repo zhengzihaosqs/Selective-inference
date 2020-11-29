@@ -89,6 +89,8 @@ ui=fluidPage(
     inputId = "extraMethod",
     choices = c("None","random forest", "sqrt lasso","stability selection"),selected ="None"
   ), 
+  tags$h4("Want a new knockoff copy?",style="color:red"),
+  actionButton("do", "A new Knockoff Copy"),
   # WHERE YOUR FOOTER GOES
   hr(),
   tags$h4("Reference:"),
@@ -101,6 +103,7 @@ ui=fluidPage(
     tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
   ),
   wordcloud2Output('mywordcloud')
+  
  
   
 )
