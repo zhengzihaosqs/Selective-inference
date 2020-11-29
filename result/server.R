@@ -1,29 +1,36 @@
 
 
 library(shiny)
-
+library(plotly)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+  #################################################################################################
+  #                                    Fixed linear    start
+  output$fixedlinearfdrbeta1<- renderPlotly({
    
-  output$plot1 <- plotly::renderPlotly({
-    
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2] 
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  })
+  output$fixedlinearfdrbeta35<- renderPlotly({
+
+  })
+  output$fixedlinearpowerbeta1<- renderPlotly({
     
   })
-  output$plot2<- plotly::renderPlotly({
-    
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2] 
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  output$fixedlinearpowerbeta35<- renderPlotly({
     
   })
+  output$fixedlinearfdrsdbeta1<-renderTable({
+   
+  })
+  output$fixedlinearfdrsdbeta35<-renderTable({
+   
+  })
+  output$fixedlinearpowersdbeta1<-renderTable({
+    
+  })
+  output$fixedlinearpowersdbeta35<-renderTable({
+    
+  })
+  #################################################################################################
+  #                                    Fixed linear    finish
   
 })
