@@ -1,36 +1,36 @@
-K,knockstat,FDR1,POWER1,FDR35,POWER35
+K,knockstat,FDP1,POWER1,FDP35,POWER35
 20,lasso_coefdiff,0.0743,1,0.0597,1
 20,lasso_lambdadiff,0.0684,1,0.0687,1
 20,lasso_lambdasmax,0.0593,1,0.0613,1
-20,pearson,0.0638,1,0.0806,1
+20,correlation,0.0638,1,0.0806,1
 20,kendall,0.0703,0.7095,0.0714,0.834
 20,spearman,0.068,0.6835,0.0699,0.83
 20,random forest,0.0747,0.7785,0.0733,0.8135
 40,lasso_coefdiff,0.0873,1,0.0809,1
 40,lasso_lambdadiff,0.0938,1,0.0801,1
 40,lasso_lambdasmax,0.091,1,0.0764,1
-40,pearson,0.0796,0.999,0.0786,0.9998
+40,correlation,0.0796,0.999,0.0786,0.9998
 40,kendall,0.0749,0.5215,0.0659,0.5762
 40,spearman,0.0745,0.5178,0.0675,0.575
 40,random forest,0.0751,0.4002,0.071,0.4402
 60,lasso_coefdiff,0.0894,1,0.078,1
 60,lasso_lambdadiff,0.0892,1,0.0861,1
 60,lasso_lambdasmax,0.083,0.9975,0.0838,1
-60,pearson,0.08,0.996,0.0823,0.9975
+60,correlation,0.08,0.996,0.0823,0.9975
 60,kendall,0.0697,0.3858,0.0779,0.4203
 60,spearman,0.0724,0.3938,0.0716,0.4173
 60,random forest,0.058,0.2153,0.05,0.2137
 80,lasso_coefdiff,0.0928,1,0.0851,1
 80,lasso_lambdadiff,0.0851,1,0.0892,1
 80,lasso_lambdasmax,0.082,0.9985,0.0934,0.9978
-80,pearson,0.0815,0.9919,0.086,0.9932
+80,correlation,0.0815,0.9919,0.086,0.9932
 80,kendall,0.0732,0.3174,0.0718,0.351
 80,spearman,0.0704,0.3276,0.0685,0.3629
 80,random forest,0.0465,0.1115,0.0439,0.1482
 100,lasso_coefdiff,0.0929,1,0.0916,1
 100,lasso_lambdadiff,0.093,1,0.0927,1
 100,lasso_lambdasmax,0.0933,0.9997,0.0886,1
-100,pearson,0.0831,0.9876,0.0798,0.9877
+100,correlation,0.0831,0.9876,0.0798,0.9877
 100,kendall,0.0659,0.2798,0.0694,0.2742
 100,spearman,0.0749,0.3053,0.0673,0.2728
 100,random forest,0.0232,0.0746,0.0235,0.0767

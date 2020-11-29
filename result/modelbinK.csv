@@ -1,4 +1,4 @@
-K,knockstat,FDR1,POWER1,FDR35,POWER35
+K,knockstat,FDP1,POWER1,FDP35,POWER35
 20,lasso_coefdiff,0.0596,0.956,0.0571,0.992
 20,lasso_lambdadiff,0.0766,0.7815,0.0635,0.893
 20,lasso_lambdasmax,0.0676,0.8055,0.0633,0.9225
