@@ -1,4 +1,4 @@
-K,lasso_coefdiff,lasso_lambdadiff,lasso_lambdasmax,correlation,kendall,spearman,random forest
+K,las_coefdiff,las_lambdadiff,las_lambdasmax,cor_diff,kendall,spearman,RF
 20,0.0766,0.0681,0.062,0.0776,0.0783,0.0773,0.0851
 20,0.0698,0.0774,0.0691,0.0859,0.0745,0.0749,0.0813
 40,0.0651,0.0688,0.0711,0.0562,0.0711,0.0741,0.0861

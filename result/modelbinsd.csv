@@ -1,4 +1,4 @@
-K,lasso_coefdiff,lasso_lambdadiff,lasso_lambdasmax,coefdiff_bin,lambdadiff_bin,lambdasmax_bin,random forest
+K,las_coefdiff,las_lambdadiff,las_lambdasmax,coefdiff_bin,lambdadiff_bin,lambdasmax_bin,RF
 20,0.0622,0.0797,0.0679,0.0696,0.0726,0.0593,0.0974
 20,0.07,0.0752,0.078,0.0663,0.0666,0.0581,0.0797
 40,0.0639,0.0672,0.071,0.0572,0.0682,0.0572,0.0786

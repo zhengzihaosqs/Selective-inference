@@ -20,13 +20,13 @@ K,knockstat,FDP1,POWER1,FDP35,POWER35
 60,lambdadiff_bin,0.0791,0.3495,0.0792,0.443
 60,lambdasmax_bin,0.045,0.2583,0.055,0.3365
 60,random forest,0.0714,0.2227,0.0703,0.2433
-80,lasso_coefdiff,0.0889,0.5341,0.5247,0.092
-80,lasso_lambdadiff,0.0882,0.3508,0.3641,0.0887
-80,lasso_lambdasmax,0.0751,0.3177,0.3108,0.0613
-80,coefdiff_bin,0.091,0.5986,0.6135,0.0893
-80,lambdadiff_bin,0.0812,0.343,0.3691,0.0909
-80,lambdasmax_bin,0.0578,0.2405,0.2442,0.0508
-80,random forest,0.0718,0.1639,0.1678,0.0546
+80,lasso_coefdiff,0.0889,0.5341,0.092,0.5247
+80,lasso_lambdadiff,0.0882,0.3508,0.0887,0.3641
+80,lasso_lambdasmax,0.0751,0.3177,0.0613,0.3108
+80,coefdiff_bin,0.091,0.5986,0.0893,0.6135
+80,lambdadiff_bin,0.0812,0.343,0.0909,0.3691
+80,lambdasmax_bin,0.0578,0.2405,0.0508,0.2442
+80,random forest,0.0718,0.1639,0.0546,0.1678
 100,lasso_coefdiff,0.0667,0.3825,0.069,0.4392
 100,lasso_lambdadiff,0.0664,0.2595,0.0676,0.3095
 100,lasso_lambdasmax,0.0405,0.1704,0.0544,0.2482
