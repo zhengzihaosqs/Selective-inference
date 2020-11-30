@@ -29,13 +29,14 @@ server=function(input, output) {
   })
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   #set.seed(1)
-  p=200; n=500; k=40
-  mu = rep(0,p); Sigma = diag(p)
-  Xd = round(matrix(rnorm(n*p),n),3)
-  nonzero = sample(p, k)
-  beta = 3.5 * (1:p %in% nonzero)
-  yd = round(Xd %*% beta + rnorm(n),3)
-  default_data=cbind(data.frame(yd),data.frame(Xd))
+  #p=200; n=500; k=40
+ # mu = rep(0,p); Sigma = diag(p)
+  #Xd = round(matrix(rnorm(n*p),n),3)
+  #nonzero = sample(p, k)
+  #beta = 3.5 * (1:p %in% nonzero)
+  #yd = round(Xd %*% beta + rnorm(n),3)
+  #default_data=cbind(data.frame(yd),data.frame(Xd))
+  default_data<-read.csv("default.csv")
   #########################################################download##################################################
   output$downloadData <- downloadHandler(
     filename = function() { 
@@ -97,10 +98,10 @@ server=function(input, output) {
   ########################################
   
   
-  
+  observeEvent(input$do,{showModal(modalDialog("The knockoff copy for model-X is changing now, wait a second!"))})
   return_X_Xk<-reactive({
     input$do
-    observeEvent(input$do,{showModal(modalDialog("The knockoff copy for model-X changes!"))})
+    
     data_thisstep<-data_for_analysis()
    
     X1=data_thisstep[,-1]
