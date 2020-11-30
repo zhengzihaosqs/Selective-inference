@@ -19,13 +19,15 @@ knock_to_dataframe<-function(selected,X){
 }
 
 
+# This should be the second.")
 # Define server logic required to draw a histogram
 server=function(input, output) {
-  showModal(modalDialog("This online app is designed to run knockoff method, 
-                        there is one default dataset and you can also upload your own data set. 
-                        Due to the randomness in generation of Model-X knockoff copy, you may click the button below 
-                         the Extra method to create a new Model-X knockoff copy. The default seeting is Model-X knockoff and 
-                        you may change to Fixed-X knockoff by click specific button(make sure n>p to guarantee the fixed-X knockoff.)",footer = modalButton("Get it!")))
+  showModal(modalDialog( HTML("***This online app is designed to run knockoff method, 
+there is one default dataset and you can also upload your own data set. <br> 
+                              ***Due to the randomness in generation of Model-X knockoff copy, you may click the button below 
+                              the Extra method to create a new Model-X knockoff copy.<br>
+                              ***The default seeting is Model-X knockoff and 
+                              you may change to Fixed-X knockoff by click specific button(make sure n>p to guarantee the fixed-X knockoff.)"),footer = modalButton("Get it!")))
   
   sss=read.csv("BHword.csv",header = T)
   output$mywordcloud<-renderWordcloud2({
