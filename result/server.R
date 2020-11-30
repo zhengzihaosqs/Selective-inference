@@ -103,12 +103,12 @@ shinyServer(function(input, output) {
   })
   output$modelsinpowerbeta1<- renderPlotly({
     p= ggplot(modelsink,aes(x=K,y=POWER1,col=knockstat))+geom_line()+geom_point()+
-      ggtitle("beta =1,Model-X,Y=sin(X)beta---power")+ylab("power")+geom_hline(yintercept =  1,linetype = "dotdash") 
+      ggtitle("beta =1,Model-X,Y=sin(X)beta---power")+ylab("power")+ylim(0.2,1)+geom_hline(yintercept =  1,linetype = "dotdash") 
     return(ggplotly(p))
   })
   output$modelsinpowerbeta35<- renderPlotly({
     p= ggplot(modelsink,aes(x=K,y=POWER35,col=knockstat))+geom_line()+geom_point()+
-      ggtitle("beta =3.5,Model-X,Y=sin(X)beta---power")+ylab("power")+geom_hline(yintercept =  1,linetype = "dotdash") 
+      ggtitle("beta =3.5,Model-X,Y=sin(X)beta---power")+ylab("power")+ylim(0.2,1)+geom_hline(yintercept =  1,linetype = "dotdash") 
     return(ggplotly(p))
   })
   modelsinsd<-read.csv("modelsinsd.csv")
