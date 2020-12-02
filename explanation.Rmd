@@ -9,30 +9,41 @@ output:
 
 ## Knockoff Statistic $W_j$
 
-After we get the knockoff statistic $W_j$, we can compute data-dependent threshold using following formula:
+Generally speaking, knockoff statistic $W$ make use of the information between design matrix $X$ and its knockofff copy $\tilde{X}$. After we get the knockoff statistic $W_j$, we can compute data-dependent threshold using following formula:
 $$
 T=\min \left\{t \in \mathcal{R}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
 $$
 Where q is target FDR level. Based on the threshold $T$, features j's with $W_j>T$ will be selected.
 
-There are many ways to evaluate the importance of variable and compute $W_j$, here I just list some kncokoff statistic used in our project and interactive tools.
+There are many ways to evaluate the importance of variable and compute $W_j$, here we just list some kncokoff statistics used in our project and interactive tools.
 
 ## Advanced usage with custom knockoff statistic
 
-* LASSO
-    + <span style="color:blue">lasso coefdiff</span> :
-    + <span style="color:blue">lasso lambdadiff</span> :
-    + <span style="color:blue">lasso lambdasmax</span> :
+* LASSO:  model $Y\sim(X,\tilde{X})$ through Lasso, no intercept
+    + <span style="color:blue">lasso coefdiff</span> : $W_j=|\hat{\beta}_j|-|\tilde{\beta}_j|$, here $\hat{\beta}_j, \tilde{\beta}_j$ are lasso coefficient for $X_j, \tilde{X}_j$ with fixed $\lambda$ (based on cross-validation)
+    + <span style="color:blue">lasso lambdadiff</span> :$W_{j}=\lambda_{j}-\lambda_{j + d}, \lambda_{k}=\sup \left\{\lambda: \hat{\beta}_{k} \neq 0\right\}$, first entering time in Lasso path.
+    + <span style="color:blue">lasso lambdasmax</span> : $\lambda_{k}=\sup \left\{\lambda: \hat{\beta}_{k} \neq 0\right\}$
+    $$W_{j}=\left\{\begin{array}{l}\lambda_{j} \quad \quad  \text { if } \lambda_{j}>\lambda_{j+d} \\ -\lambda_{j+d} \quad\text { if } \lambda_{j}<\lambda_{j+ d}\end{array}\right.$$
+    
 * Pairwise relationship
-    + <span style="color:blue">Correlation difference</span> :
-    + <span style="color:blue">Kendall</span> :
-    + <span style="color:blue">Spearman</span> :
-* Item 3
-    + 
+    + <span style="color:blue">Correlation difference</span> : $W_j=\left|X_{j}^{\top} y\right|-\left|\tilde{X}_{j}^{\top} y\right|$
+    + <span style="color:blue">Kendall</span> : Kendall rank correlation coefficient $(\tau)$  measure the ordinal association between two measured quantities, used in nonparameteric statistics.
+    $$\tau(x,y)=\frac{2}{n(n-1)} \sum_{i<j} \operatorname{sgn}\left(x_{i}-x_{j}\right) \operatorname{sgn}\left(y_{i}-y_{j}\right)$$
+    We define  $W_j=|\tau(X_j,y)|-|\tau(\tilde{X}_j,y)|$
+    + <span style="color:blue">Spearman</span> : Spearman's rank correlation coefficient ($\rho$) is a nonparametric measure of  dependence between the rankings of two variables.
+    $$d_i=rank(x_i)-rank(y_i), \rho(x,y)=1-\frac{6 \sum d_{i}^{2}}{n\left(n^{2}-1\right)}$$
+    We define $W_j=|\rho(X_j,y)|-|\rho(\tilde{X}_j,y)|$
 
+## Model data using GLM
 
+If you believe the response variable $y$ is from generalied linear model, you may choose penalized generalized linear models to get the estimate of coeffiients as well as the entering time $\lambda_k$. For example, if response variable $y$ is binary, we can model the data with GLM, family="binomial"; if response variable is non-negative integer, you can consider family="poisson".
 
+## Extra Method to copute knockoff statistic
 
+* <span style="color:blue">Random forest</span> : using $Z_j$ and $\tilde{Z}_j$ to represent the random forest variable importance of jth variable $X_j$ and its knockoff $\tilde{X}_j$. Knockoff statistic is $W_j=|Z_j|-|\tilde{Z}_j|$. Detailed discussion on variable importance for random forest can be found in reference.
+* <span style="color:blue">sqrt lasso</span> : similar to ordinary Lasso but with a slightly different Loss function, the knockoff statistic is $$W_{j}=\left\{\begin{array}{l}\lambda_{j} \quad \quad  \text { if } \lambda_{j}>\lambda_{j+d} \\ -\lambda_{j+d} \quad\text { if } \lambda_{j}<\lambda_{j+ d}\end{array}\right.$$
+Where $\lambda_k$ is first entering time.
+* <span style="color:blue">stability selection</span> :
 
 
 
@@ -44,7 +55,8 @@ There are many ways to evaluate the importance of variable and compute $W_j$, he
 
 ## Reference
 * Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085. [Link](https://projecteuclid.org/euclid.aos/1438606853)
-* 
+* Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization Paths for Generalized Linear Models via Coordinate Descent, Journal of Statistical Software, Vol. 33, Issue 1, Feb 2010 [Link](http://www.jstatsoft.org/v33/i01/)
+* Breiman, L. Random Forests. Machine Learning 45, 5–32 (2001). [Link](https://doi.org/10.1023/A:1010933404324)
 
 
 

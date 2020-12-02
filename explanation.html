@@ -129,37 +129,46 @@ $(document).ready(function () {
 
 <div id="knockoff-statistic-w_j" class="section level2">
 <h2>Knockoff Statistic <span class="math inline">\(W_j\)</span></h2>
-<p>After we get the knockoff statistic <span class="math inline">\(W_j\)</span>, we can compute data-dependent threshold using following formula: <span class="math display">\[
+<p>Generally speaking, knockoff statistic <span class="math inline">\(W\)</span> make use of the information between design matrix <span class="math inline">\(X\)</span> and its knockofff copy <span class="math inline">\(\tilde{X}\)</span>. After we get the knockoff statistic <span class="math inline">\(W_j\)</span>, we can compute data-dependent threshold using following formula: <span class="math display">\[
 T=\min \left\{t \in \mathcal{R}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
 \]</span> Where q is target FDR level. Based on the threshold <span class="math inline">\(T\)</span>, features j’s with <span class="math inline">\(W_j&gt;T\)</span> will be selected.</p>
-<p>There are many ways to evaluate the importance of variable and compute <span class="math inline">\(W_j\)</span>, here I just list some kncokoff statistic used in our project and interactive tools.</p>
+<p>There are many ways to evaluate the importance of variable and compute <span class="math inline">\(W_j\)</span>, here we just list some kncokoff statistics used in our project and interactive tools.</p>
 </div>
 <div id="advanced-usage-with-custom-knockoff-statistic" class="section level2">
 <h2>Advanced usage with custom knockoff statistic</h2>
 <ul>
-<li>LASSO
+<li>LASSO: model <span class="math inline">\(Y\sim(X,\tilde{X})\)</span> through Lasso, no intercept
 <ul>
-<li><span style="color:blue">lasso coefdiff</span> :</li>
-<li><span style="color:blue">lasso lambdadiff</span> :</li>
-<li><span style="color:blue">lasso lambdasmax</span> :</li>
+<li><span style="color:blue">lasso coefdiff</span> : <span class="math inline">\(W_j=|\hat{\beta}_j|-|\tilde{\beta}_j|\)</span>, here <span class="math inline">\(\hat{\beta}_j, \tilde{\beta}_j\)</span> are lasso coefficient for <span class="math inline">\(X_j, \tilde{X}_j\)</span> with fixed <span class="math inline">\(\lambda\)</span> (based on cross-validation)</li>
+<li><span style="color:blue">lasso lambdadiff</span> :<span class="math inline">\(W_{j}=\lambda_{j}-\lambda_{j + d}, \lambda_{k}=\sup \left\{\lambda: \hat{\beta}_{k} \neq 0\right\}\)</span>, first entering time in Lasso path.</li>
+<li><span style="color:blue">lasso lambdasmax</span> : <span class="math inline">\(\lambda_{k}=\sup \left\{\lambda: \hat{\beta}_{k} \neq 0\right\}\)</span> <span class="math display">\[W_{j}=\left\{\begin{array}{l}\lambda_{j} \quad \quad  \text { if } \lambda_{j}&gt;\lambda_{j+d} \\ -\lambda_{j+d} \quad\text { if } \lambda_{j}&lt;\lambda_{j+ d}\end{array}\right.\]</span></li>
 </ul></li>
 <li>Pairwise relationship
 <ul>
-<li><span style="color:blue">Correlation difference</span> :</li>
-<li><span style="color:blue">Kendall</span> :</li>
-<li><span style="color:blue">Spearman</span> :</li>
+<li><span style="color:blue">Correlation difference</span> : <span class="math inline">\(W_j=\left|X_{j}^{\top} y\right|-\left|\tilde{X}_{j}^{\top} y\right|\)</span></li>
+<li><span style="color:blue">Kendall</span> : Kendall rank correlation coefficient <span class="math inline">\((\tau)\)</span> measure the ordinal association between two measured quantities, used in nonparameteric statistics. <span class="math display">\[\tau(x,y)=\frac{2}{n(n-1)} \sum_{i&lt;j} \operatorname{sgn}\left(x_{i}-x_{j}\right) \operatorname{sgn}\left(y_{i}-y_{j}\right)\]</span> We define <span class="math inline">\(W_j=|\tau(X_j,y)|-|\tau(\tilde{X}_j,y)|\)</span></li>
+<li><span style="color:blue">Spearman</span> : Spearman’s rank correlation coefficient (<span class="math inline">\(\rho\)</span>) is a nonparametric measure of dependence between the rankings of two variables. <span class="math display">\[d_i=rank(x_i)-rank(y_i), \rho(x,y)=1-\frac{6 \sum d_{i}^{2}}{n\left(n^{2}-1\right)}\]</span> We define <span class="math inline">\(W_j=|\rho(X_j,y)|-|\rho(\tilde{X}_j,y)|\)</span></li>
 </ul></li>
-<li>Item 3
+</ul>
+</div>
+<div id="model-data-using-glm" class="section level2">
+<h2>Model data using GLM</h2>
+<p>If you believe the response variable <span class="math inline">\(y\)</span> is from generalied linear model, you may choose penalized generalized linear models to get the estimate of coeffiients as well as the entering time <span class="math inline">\(\lambda_k\)</span>. For example, if response variable <span class="math inline">\(y\)</span> is binary, we can model the data with GLM, family=“binomial”; if response variable is non-negative integer, you can consider family=“poisson”.</p>
+</div>
+<div id="extra-method-to-copute-knockoff-statistic" class="section level2">
+<h2>Extra Method to copute knockoff statistic</h2>
 <ul>
+<li><span style="color:blue">Random forest</span> : using <span class="math inline">\(Z_j\)</span> and <span class="math inline">\(\tilde{Z}_j\)</span> to represent the random forest variable importance of jth variable <span class="math inline">\(X_j\)</span> and its knockoff <span class="math inline">\(\tilde{X}_j\)</span>. Knockoff statistic is <span class="math inline">\(W_j=|Z_j|-|\tilde{Z}_j|\)</span>. Detailed discussion on variable importance for random forest can be found in reference.</li>
+<li><span style="color:blue">sqrt lasso</span> : similar to ordinary Lasso but with a slightly different Loss function, the knockoff statistic is <span class="math display">\[W_{j}=\left\{\begin{array}{l}\lambda_{j} \quad \quad  \text { if } \lambda_{j}&gt;\lambda_{j+d} \\ -\lambda_{j+d} \quad\text { if } \lambda_{j}&lt;\lambda_{j+ d}\end{array}\right.\]</span> Where <span class="math inline">\(\lambda_k\)</span> is first entering time.</li>
 <li></li>
-</ul></li>
 </ul>
 </div>
 <div id="reference" class="section level2">
 <h2>Reference</h2>
 <ul>
 <li>Barber, R. F., &amp; Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085. <a href="https://projecteuclid.org/euclid.aos/1438606853">Link</a></li>
-<li></li>
+<li>Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization Paths for Generalized Linear Models via Coordinate Descent, Journal of Statistical Software, Vol. 33, Issue 1, Feb 2010 <a href="http://www.jstatsoft.org/v33/i01/">Link</a></li>
+<li>Breiman, L. Random Forests. Machine Learning 45, 5–32 (2001). <a href="https://doi.org/10.1023/A:1010933404324">Link</a></li>
 </ul>
 </div>
 

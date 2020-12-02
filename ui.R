@@ -83,7 +83,7 @@ ui=fluidPage(
     label = "Choices of knockoff statistics for exponential family:", 
     choices = c("coefficient difference", "lambda difference","lambda max"),selected ="coefficient difference"
   ), 
-  tags$h4("Extra Method to do variable selection",style="color:blue"),
+  tags$h4("Extra Method to copute knockoff statistic",style="color:blue"),
   radioGroupButtons(
     inputId = "extraMethod",
     choices = c("None","random forest", "sqrt lasso","stability selection"),selected ="None"
