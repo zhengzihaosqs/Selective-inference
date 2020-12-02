@@ -6,8 +6,9 @@ Knockoff Statistic *W*<sub>*j*</sub>
 ------------------------------------
 
 After we get the knockoff statistic *W*<sub>*j*</sub>, we can compute data-dependent threshold using following formula:
+
 $$
-T=\\min \\left\\{t \\in \\mathcal{W}: \\frac{\\\#\\left(j: W\_{j} \\leq-t\\right\\}}{\\\#\\left(j: W\_{j} \\geq t\\right\\} \\vee 1} \\leq q\\right\\}
+T=\min \left\{t \in \mathcal{W}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
 $$
  Where q is target FDR level. Based on the threshold *T*, features j's with *W*<sub>*j*</sub> &gt; *T* will be selected.
 
