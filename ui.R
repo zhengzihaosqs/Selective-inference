@@ -53,9 +53,9 @@ ui=fluidPage(
    
   ),
   
-  tags$div(tags$h6("The default setting is approximate model-X Gaussian knockoffs, ",style="color:red")
-           ,tags$h6("if you want to use classical fixed-X knockoff, make sure ",style="color:red"),
-           tags$h6("n>2p(safe) or n>p and click the below button",style="color:red")),
+ # tags$div(tags$h6("The default setting is approximate model-X Gaussian knockoffs, ",style="color:red")
+ #          ,tags$h6("if you want to use classical fixed-X knockoff, make sure ",style="color:red"),
+ #          tags$h6("n>2p(safe) or n>p and click the below button",style="color:red")),
   radioGroupButtons(
     inputId = "fixedX",label="",
     choices = c("Model-X", 

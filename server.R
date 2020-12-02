@@ -17,17 +17,23 @@ knock_to_dataframe<-function(selected,X){
   colnames(dataf)<-c("selected_variables","selected_index")
   return(dataf)
 }
-
+#div(HTML("***This online app is designed to run knockoff method, 
+#there is one default dataset and you can also upload your own data set. <br> 
+#         ***Due to the randomness in generation of Model-X knockoff copy, you may click the button below 
+#         the Extra method to create a new Model-X knockoff copy."),
+#    tags$h5("***The default setting is approximate model-X Gaussian knockoffs,
+#            if you want to use classical fixed-X knockoff, make sure n>2p(safe) or n>p and click the blue button.",style="color:red")),footer = modalButton("Get it!"))
 
 # This should be the second.")
 # Define server logic required to draw a histogram
 server=function(input, output) {
-  showModal(modalDialog( HTML("***This online app is designed to run knockoff method, 
-there is one default dataset and you can also upload your own data set. <br> 
-                              ***Due to the randomness in generation of Model-X knockoff copy, you may click the button below 
-                              the Extra method to create a new Model-X knockoff copy.<br>
-                              ***The default seeting is Model-X knockoff and 
-                              you may change to Fixed-X knockoff by click specific button(make sure n>p to guarantee the fixed-X knockoff.)"),footer = modalButton("Get it!")))
+  showModal(modalDialog(tags$div(tags$ul(
+    tags$li("This online app is designed to run knockoff method, there is one default dataset and you can also upload your own data set. "),
+    tags$li("Due to the randomness in generation of Model-X knockoff copy, you may click the button below the Extra method to create a new Model-X knockoff copy."),
+    tags$li("The default setting is approximate model-X Gaussian knockoffs, 
+            if you want to use classical fixed-X knockoff, make sure n>2p(safe) or n>p and click the blue button.",style="color:red")),  style = "font-size: 15px")
+    , footer = modalButton("Get it!"))  )
+ 
   
   sss=read.csv("BHword.csv",header = T)
   output$mywordcloud<-renderWordcloud2({
