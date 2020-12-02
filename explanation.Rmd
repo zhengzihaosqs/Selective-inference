@@ -1,14 +1,48 @@
 ---
-title: "Explanation of knockoff statistics"
-author: "Liweihao"
+title: "User Manual for Interactive Tool"
 date: "11/24/2020"
 output: html_document
 ---
 
 
+## Knockoff Statistic $W_j$
+
+After we get the knockoff statistic $W_j$, we can compute data-dependent threshold using following formula:
+$$
+T=\min \left\{t \in \mathcal{W}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
+$$
+Where q is target FDR level. Based on the threshold $T$, features j's with $W_j>T$ will be selected.
+
+There are many ways to evaluate the importance of variable and compute $W_j$, here I just list some kncokoff statistic used in our project and interactive tools.
+
+## Advanced usage with custom knockoff statistic
+
+* LASSO
+    + <span style="color:blue">lasso coefdiff</span> :
+    + <span style="color:blue">lasso lambdadiff</span> :
+    + <span style="color:blue">lasso lambdasmax</span> :
+* Pairwise relationship
+    + <span style="color:blue">Correlation difference</span> :
+    + <span style="color:blue">Kendall</span> :
+    + <span style="color:blue">Spearman</span> :
+* Item 3
+    + 
 
 
 
+
+
+
+
+
+
+
+
+
+
+## Reference
+* Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085. [Link](https://projecteuclid.org/euclid.aos/1438606853)
+* 
 
 
 
