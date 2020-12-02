@@ -1,7 +1,9 @@
 ---
 title: "User Manual for Interactive Tool"
 date: "11/24/2020"
-output: github_document        # html_document
+output:
+  html_document
+   
 ---
 
 
@@ -9,7 +11,7 @@ output: github_document        # html_document
 
 After we get the knockoff statistic $W_j$, we can compute data-dependent threshold using following formula:
 $$
-T=\min \left\{t \in \mathcal{W}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
+T=\min \left\{t \in \mathcal{R}: \frac{\#\left(j: W_{j} \leq-t\right\}}{\#\left(j: W_{j} \geq t\right\} \vee 1} \leq q\right\}
 $$
 Where q is target FDR level. Based on the threshold $T$, features j's with $W_j>T$ will be selected.
 
