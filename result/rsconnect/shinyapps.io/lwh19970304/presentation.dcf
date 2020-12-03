@@ -1,0 +1,13 @@
+name: presentation
+title: Presentation
+username:
+account: lwh19970304
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3342645
+bundleId: 3936263
+url: https://lwh19970304.shinyapps.io/presentation/
+when: 1606966211.7624
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: fixed_linear_k100.csv|fixed_linear_k100_b1.csv|fixed_linear_k20.csv|fixed_linear_k20_b1.csv|fixed_linear_k40.csv|fixed_linear_k40_b1.csv|fixed_linear_k60.csv|fixed_linear_k60_b1.csv|fixed_linear_k80.csv|fixed_linear_k80_b1.csv|model_bin_logistic_k100.csv|model_bin_logistic_k100_b1.csv|model_bin_logistic_k20.csv|model_bin_logistic_k20_b1.csv|model_bin_logistic_k40.csv|model_bin_logistic_k40_b1.csv|model_bin_logistic_k60.csv|model_bin_logistic_k60_b1.csv|model_bin_logistic_k80.csv|model_bin_logistic_k80_b1.csv|model_linear_k100.csv|model_linear_k100_b1.csv|model_linear_k20.csv|model_linear_k20_b1.csv|model_linear_k40.csv|model_linear_k40_b1.csv|model_linear_k60.csv|model_linear_k60_b1.csv|model_linear_k80.csv|model_linear_k80_b1.csv|model_logistic_k100.csv|model_logistic_k100_b1.csv|model_logistic_k20.csv|model_logistic_k20_b1.csv|model_logistic_k40.csv|model_logistic_k40_b1.csv|model_logistic_k60.csv|model_logistic_k60_b1.csv|model_logistic_k80.csv|model_logistic_k80_b1.csv|model_sin_k100.csv|model_sin_k100_b1.csv|model_sin_k20.csv|model_sin_k20_b1.csv|model_sin_k40.csv|model_sin_k40_b1.csv|model_sin_k60.csv|model_sin_k60_b1.csv|model_sin_k80.csv|model_sin_k80_b1.csv

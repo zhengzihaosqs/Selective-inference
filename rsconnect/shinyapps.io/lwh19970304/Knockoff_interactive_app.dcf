@@ -1,0 +1,13 @@
+name: Knockoff_interactive_app
+title: Knockoff_interactive_app
+username:
+account: lwh19970304
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3342731
+bundleId: 3936328
+url: https://lwh19970304.shinyapps.io/Knockoff_interactive_app/
+when: 1606967681.24214
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: BHword.csv|Final Project.Rmd|README.md|Zihao.Rmd|explanation.Rmd|explanation.html|liweihao.Rmd|minggao.Rmd|report.Rmd|stability selection.pdf|result

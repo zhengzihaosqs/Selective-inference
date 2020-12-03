@@ -42,7 +42,7 @@ If you believe the response variable $y$ is from generalied linear model, you ma
 * <span style="color:blue">Random forest</span> : using $Z_j$ and $\tilde{Z}_j$ to represent the random forest variable importance of jth variable $X_j$ and its knockoff $\tilde{X}_j$. Knockoff statistic is $W_j=|Z_j|-|\tilde{Z}_j|$. Detailed discussion on variable importance for random forest can be found in reference.
 * <span style="color:blue">sqrt lasso</span> : similar to ordinary Lasso but with a slightly different Loss function, the knockoff statistic is $$W_{j}=\left\{\begin{array}{l}\lambda_{j} \quad \quad  \text { if } \lambda_{j}>\lambda_{j+d} \\ -\lambda_{j+d} \quad\text { if } \lambda_{j}<\lambda_{j+ d}\end{array}\right.$$
 Where $\lambda_k$ is first entering time.
-* <span style="color:blue">stability selection</span> :
+* <span style="color:blue">stability selection</span> : The idea is to compute stability for $X_j$ and $\tilde{X}_j$, denote as $Z_j$ and $\tilde{Z}_j$, then compute the knockoff statistic $W_j=|Z_j|-|\tilde{Z}_j|$. Detailed discussion stability selection can be found in reference.
 
 
 
@@ -56,7 +56,8 @@ Where $\lambda_k$ is first entering time.
 * Barber, R. F., & Candes, E. J. (2015). Controlling the false discovery rate via knockoffs. The Annals of Statistics, 43(5), 2055-2085. [Link](https://projecteuclid.org/euclid.aos/1438606853)
 * Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization Paths for Generalized Linear Models via Coordinate Descent, Journal of Statistical Software, Vol. 33, Issue 1, Feb 2010 [Link](http://www.jstatsoft.org/v33/i01/)
 * Breiman, L. Random Forests. Machine Learning 45, 5–32 (2001). [Link](https://doi.org/10.1023/A:1010933404324)
-
+* Meinshausen, N., & Buhlmann, P. (2010). Stability selection. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 72(4), 417-473.
+[Link](https://stat.ethz.ch/~nicolai/stability.pdf)
 
 ```{r, echo = FALSE}
 sss=read.csv("BHword.csv")

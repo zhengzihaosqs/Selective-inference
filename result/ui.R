@@ -9,7 +9,7 @@ shinyUI(fluidPage(
   # Application title
   titlePanel("Presentation of Project Simulation result"),
   tabsetPanel(
-    tabPanel("fixedlinear",
+    tabPanel("fixed-X linear",
              fluidRow(width =12,
                       column(6, plotlyOutput("fixedlinearfdrbeta1")),
                       column(6,plotlyOutput("fixedlinearfdrbeta35"))
@@ -28,7 +28,7 @@ shinyUI(fluidPage(
                       column(6, DTOutput("fixedlinearpowersdbeta35"))
              )
     ),
-    tabPanel("modellinear",
+    tabPanel("model-X linear",
              fluidRow(width =12,
                       column(6, plotlyOutput("modellinearfdrbeta1")),
                       column(6,plotlyOutput("modellinearfdrbeta35"))
@@ -47,7 +47,7 @@ shinyUI(fluidPage(
                       column(6, DTOutput("modellinearpowersdbeta35"))
              )
     ),
-    tabPanel("modelbin",
+    tabPanel("model-X binary",
              fluidRow(width =12,
                       column(6, plotlyOutput("modelbinfdrbeta1")),
                       column(6,plotlyOutput("modelbinfdrbeta35"))
@@ -66,7 +66,7 @@ shinyUI(fluidPage(
                       column(6, DTOutput("modelbinpowersdbeta35"))
              )
     ),
-    tabPanel("modelsin",
+    tabPanel("model-X sin(X)",
              fluidRow(width =12,
                       column(6, plotlyOutput("modelsinfdrbeta1")),
                       column(6,plotlyOutput("modelsinfdrbeta35"))

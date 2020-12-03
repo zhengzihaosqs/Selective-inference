@@ -59,6 +59,7 @@ ui=fluidPage(
                   no = icon("remove",
                             lib = "glyphicon"))
   ),
+ tags$a(href="https://rpubs.com/selectiveinferencepaul/699241", "[user manual]",target="_blank"),
   tags$h4("Advanced usage with custom arguments:"),
   selectInput(
     inputId = "knockoffstat",
