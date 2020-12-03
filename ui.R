@@ -6,7 +6,8 @@
 
 library(shiny)
 library(shinyWidgets)
-library(wordcloud2)
+
+library(ECharts2Shiny)
 # Define UI for application that draws a histogram
 ui=fluidPage(
  
@@ -26,21 +27,16 @@ ui=fluidPage(
                    choices = c(Head = "head",
                                All = "all"),
                    selected = "all"),
-      downloadButton('downloadData', label="Download default Data"),
+      downloadButton('downloadData', label="Download Default Data"),
       tags$hr(style="border-color: purple"),
       selectInput('alpha', 'Select your FDR level:',
-                  choices = c(0.01,0.05,0.1,0.15),selected = 0.01),
+                  choices = c(0.01,0.05,0.1,0.15,0.2,0.25),selected = 0.01),
       
       
       
       tags$hr(style="border-color: purple"),
-      #actionButton("dodo", "Download Result" ) 
       downloadButton('downloadResult', label="Download Result")
-      
-      
-      
-      
-    ),
+  ),
     
     mainPanel(
       tabsetPanel(
@@ -89,6 +85,7 @@ ui=fluidPage(
   ), 
   tags$h4("Want a new knockoff copy?",style="color:red"),
   actionButton("do", "A new Knockoff Copy"),
+  
   # WHERE YOUR FOOTER GOES
   hr(),
   tags$h4("Reference:"),
@@ -99,9 +96,7 @@ ui=fluidPage(
   tags$div(
     "Candes, E., Fan, Y., Janson, L., & Lv, J. (2016). Panning for gold: Model-X knockoffs for high-dimensional controlled variable selection.",
     tags$a(href="https://arxiv.org/abs/1610.02351", "[link]")
-  ),
-  wordcloud2Output('mywordcloud')
-  
+  )
  
   
 )

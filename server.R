@@ -2,10 +2,11 @@
 
 library(shiny)
 library(knockoff)
-library(wordcloud2)
+
 library(ranger)
 library(stabs)
 library(RPtests)
+library(ECharts2Shiny)
 knock_to_dataframe<-function(selected,X){
   col_name=NULL
   if(is.null(colnames(X)))
@@ -35,10 +36,7 @@ server=function(input, output) {
     , footer = modalButton("Get it!"))  )
  
   
-  sss=read.csv("BHword.csv",header = T)
-  output$mywordcloud<-renderWordcloud2({
-    wordcloud2(sss)
-  })
+  
   #userdata <- reactive({read.csv(input$file1$datapath,header = input$header)})
   #set.seed(1)
   #p=200; n=500; k=40
@@ -374,20 +372,6 @@ server=function(input, output) {
       # EXTA METHOD part finish
     }
     
-    
-    
-    
-      
-    result_users<-knockoff_result(X1, y1, input$alpha, relation='linear', input$fixedX)
-    showNotification(
-      paste("You choose ",input$fixedX,"with fdr level = ",input$alpha)
-    )
-    reu=result_users
-    thres=reu$threshold
-    if(thres>10000)
-      return(nofinding)
-    else
-      return(knock_to_dataframe(reu$selected,X1))
   })
   output$knock_selected_covariate<-DT::renderDT({result_userinput()})
   
@@ -396,14 +380,12 @@ server=function(input, output) {
   ##### Download result
   
   output$downloadResult <- downloadHandler(
-    filename = function() {
-      paste("Selected", ".csv", sep = "")
-    },
+    filename = "Selected.csv",
     content = function(file) {
       write.csv(result_userinput(), file, row.names = FALSE)
     }
   )
-  
+ 
   
 }
 
