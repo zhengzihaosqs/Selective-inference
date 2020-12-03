@@ -11,8 +11,6 @@ library(wordcloud2)
 ui=fluidPage(
  
   titlePanel ( 'Knockoff: variable selection based on user perference'),
-  tags$text ("Due to randomness, you may try several times on same setting."),
-  tags$em("This text is emphasized."),
  
   sidebarLayout(
     sidebarPanel(
@@ -36,6 +34,7 @@ ui=fluidPage(
       
       
       tags$hr(style="border-color: purple"),
+      #actionButton("dodo", "Download Result" ) 
       downloadButton('downloadResult', label="Download Result")
       
       

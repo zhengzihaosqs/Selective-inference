@@ -393,15 +393,16 @@ server=function(input, output) {
   
 
   #############################################################################################################
-  ##### final stage: create a pdf report using "report.Rmd"
-  output$downloadResult<-downloadHandler(
-    filename = function() { 
-      paste("Selected", ".csv", sep="")
+  ##### Download result
+  
+  output$downloadResult <- downloadHandler(
+    filename = function() {
+      paste("Selected", ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(result_userinput(), file,row.names = FALSE)
-    })
-  
+      write.csv(result_userinput(), file, row.names = FALSE)
+    }
+  )
   
   
 }
