@@ -1,0 +1,25 @@
+word,freq
+BH,85
+FDR,66
+multiple testing,48
+selective inference,14
+AdaPT,31
+Knockoff+,26
+POSI,24
+Holm,23
+Bonferroni,23
+Simes,21
+BY,20
+FWER,20
+FCR,18
+Model-X,18
+closed testing,17
+dBH,15
+Hochberg,14
+Scheffe,15
+Sidak,13
+Benjamini-Yekutieli,6
+Post-hoc,8
+"Tukey's HSD,",9
+stepdown,9
+adaptive,8

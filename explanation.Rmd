@@ -1,8 +1,7 @@
 ---
 title: "User Manual for Interactive Tool"
-date: "11/24/2020"
-output:
-  html_document
+
+output: html_document
    
 ---
 
@@ -59,7 +58,11 @@ Where $\lambda_k$ is first entering time.
 * Breiman, L. Random Forests. Machine Learning 45, 5–32 (2001). [Link](https://doi.org/10.1023/A:1010933404324)
 
 
-
+```{r, echo = FALSE}
+sss=read.csv("BHword.csv")
+library(wordcloud2)
+wordcloud2(sss)
+```
 
 
 
