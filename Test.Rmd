@@ -1,0 +1,64 @@
+---
+title: "Test"
+author: "Zihao Zheng"
+date: "12/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+knockoff_result_test<-function(p=200, n=500, k=40, fdr=0.1, replicate=10, b=3.5, relation='linear', method='fixed'){
+  fdp_matrix <- data.frame()
+  power_matrix <- data.frame()
+  for(i in 1:replicate){
+    mu=rep(0,p); Sigma=toeplitz(0.3^(0:(p-1)))
+    X = mvrnorm(n,mu,Sigma)
+    nonzero = sample(p, k)
+    beta = b * (1:p %in% nonzero)
+    y = generate_y(X,beta,relation)
+    if(method=='fixed'){
+      temp = create.fixed(X,method='equi')
+      X = temp$X
+      X_k=temp$Xk
+    } else if(method=='model'){
+      X_k=create.gaussian(X,mu,Sigma)
+      X = sapply(1:p,function(j) {X[,j]*norm(X_k[,j],'2')/norm(X[,j],'2')})
+    } else{
+      stop('Wrong method')
+    }
+
+    pearson_W=sapply(1:p,function(j) {abs(sum(y*X[,j]))-abs(sum(y*X_k[,j]))})
+    kendall_W=sapply(1:p,function(j) {abs(cor(y,X[,j],method = c("kendall")))-abs(cor(y,X_k[,j],method = c("kendall")))})
+    RF_W=stat.random_forest(X, X_k, y)
+    W = data.frame(pearson=pearson_W, kendall=kendall_W, RF=RF_W)
+    #threshold = sapply(1:ncol(W),function(j) {knockoff.threshold(W[,j],fdr)})
+    discoveries=sapply(1:ncol(W),function(j) {which(W[,j]>knockoff.threshold(W[,j],fdr))})
+    fdp = sapply(1:ncol(W), function(j) {sum(1 - discoveries[[j]] %in% nonzero)/max(length(discoveries[[j]]),1)})
+    power = sapply(1:ncol(W), function(j) {sum(discoveries[[j]] %in% nonzero)/k})
+    fdp_matrix = rbind(fdp_matrix,fdp)
+    power_matrix = rbind(power_matrix,power)
+  }
+  colnames(fdp_matrix) <- c('pearson','kendall','random forest')
+  colnames(power_matrix) <- c('pearson','kendall','random forest')
+  return(list(fdp = fdp_matrix, power = power_matrix))
+}
+```
+
+```{r}
+knockoff_summary_test<-function(result){
+  summary_matrix = as.matrix(sapply(1:ncol(result$fdp), function(j){
+    round(c(mean(result$fdp[,j]),sd(result$fdp[,j]),mean(result$power[,j]),sd(result$power[,j])),4)
+    }))
+  rownames(summary_matrix)<-c("Average FDP","Standard deviation of FDP", "Average power", "Standard deviation of power")
+  colnames(summary_matrix)<-c('pearson','kendall','random forest')
+  return(summary_matrix)
+}
+```
+
+```{r}
+knockoff_summary_test(knockoff_result_test(k=40, replicate=100, relation='linear', method='model'))
+```
+
